@@ -129,20 +129,43 @@ class Plugin {
 			return;
 		}
 
-		// Enqueue widget CSS.
+		// Enqueue compiled Tailwind CSS with custom theme.
 		wp_enqueue_style(
 			'chatcommerce-ai-widget',
 			CHATCOMMERCE_AI_PLUGIN_URL . 'assets/css/widget.css',
 			array(),
-			CHATCOMMERCE_AI_VERSION
+			CHATCOMMERCE_AI_VERSION . '.' . time() // Cache bust during development
 		);
 
-		// Enqueue widget JS.
+		// Add x-cloak style to prevent flash of unstyled content.
+		wp_add_inline_style(
+			'chatcommerce-ai-widget',
+			'[x-cloak] { display: none !important; }'
+		);
+
+		// Enqueue Alpine.js from CDN.
+		wp_enqueue_script(
+			'alpinejs',
+			'https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js',
+			array(),
+			'3.13.3',
+			true
+		);
+
+		// Add defer attribute to Alpine.js.
+		add_filter( 'script_loader_tag', function( $tag, $handle ) {
+			if ( 'alpinejs' === $handle ) {
+				return str_replace( ' src', ' defer src', $tag );
+			}
+			return $tag;
+		}, 10, 2 );
+
+		// Enqueue widget JS (Alpine.js component).
 		wp_enqueue_script(
 			'chatcommerce-ai-widget',
-			CHATCOMMERCE_AI_PLUGIN_URL . 'assets/js/widget.js',
+			CHATCOMMERCE_AI_PLUGIN_URL . 'assets/js/widget-modern.js',
 			array(),
-			CHATCOMMERCE_AI_VERSION,
+			CHATCOMMERCE_AI_VERSION . '.' . time(), // Cache bust
 			true
 		);
 

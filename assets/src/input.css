@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Scoped base styles - ONLY for our widget (preflight disabled) */
+@layer base {
+  #chatcommerce-ai-widget,
+  #chatcommerce-ai-widget *,
+  #chatcommerce-ai-widget *::before,
+  #chatcommerce-ai-widget *::after {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #chatcommerce-ai-widget {
+    line-height: 1.5;
+    font-family: -apple-system, BlinkMacSystemFont, Inter, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+@layer components {
+  .chatcommerce-btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-primary-600 border border-transparent rounded-xl shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 ease-in-out;
+  }
+
+  .chatcommerce-btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-xl hover:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 ease-in-out;
+  }
+
+  .chatcommerce-card {
+    @apply bg-white rounded-2xl shadow-soft p-6 transition-all duration-200 hover:shadow-xl;
+  }
+
+  .chatcommerce-input {
+    @apply block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm transition-all duration-200;
+  }
+}
+
+/* Custom Scrollbar */
+.chatcommerce-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chatcommerce-scrollbar::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded-full;
+}
+
+.chatcommerce-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400;
+}
+
+/* Smooth transitions for Alpine.js */
+[x-cloak] {
+  display: none !important;
+}

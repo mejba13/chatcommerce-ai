@@ -5,12 +5,18 @@
   "author": "Engr Mejba Ahmed <https://www.mejba.me>",
   "license": "GPL-2.0-or-later",
   "scripts": {
-    "build": "echo 'Assets are already built'",
-    "watch": "echo 'Watch mode not configured yet'",
-    "lint": "echo 'Linting not configured yet'",
-    "format": "echo 'Formatting not configured yet'"
+    "dev": "npx tailwindcss -i ./assets/src/input.css -o ./assets/css/widget.css --watch",
+    "build": "npx tailwindcss -i ./assets/src/input.css -o ./assets/css/widget.css --minify",
+    "build:admin": "npx tailwindcss -i ./assets/src/admin-input.css -o ./assets/css/admin.css --minify"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "autoprefixer": "^10.4.16"
+  },
+  "dependencies": {
+    "alpinejs": "^3.13.3"
+  },
   "keywords": [
     "wordpress",
     "woocommerce",
@@ -19,6 +25,8 @@
     "openai",
     "customer-support",
     "live-chat",
-    "lead-capture"
+    "lead-capture",
+    "tailwindcss",
+    "alpinejs"
   ]
 }
