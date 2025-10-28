@@ -1,0 +1,16 @@
+/**
+ * ChatCommerce AI Admin Styles
+ *
+ * @package ChatCommerceAI
+ */
+
+/* Minimal admin styles - WordPress provides most styling */
+.chatcommerce-ai-dashboard .stat-card,
+.chatcommerce-ai-dashboard .quick-action-card {
+	transition: transform 0.2s;
+}
+
+.chatcommerce-ai-dashboard .stat-card:hover,
+.chatcommerce-ai-dashboard .quick-action-card:hover {
+	transform: translateY(-2px);
+}

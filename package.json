@@ -1,0 +1,24 @@
+{
+  "name": "chatcommerce-ai",
+  "version": "1.0.0",
+  "description": "24/7 AI support and lead capture for WooCommerce with OpenAI-powered chat",
+  "author": "Engr Mejba Ahmed <https://www.mejba.me>",
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "build": "echo 'Assets are already built'",
+    "watch": "echo 'Watch mode not configured yet'",
+    "lint": "echo 'Linting not configured yet'",
+    "format": "echo 'Formatting not configured yet'"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "wordpress",
+    "woocommerce",
+    "chatbot",
+    "ai",
+    "openai",
+    "customer-support",
+    "live-chat",
+    "lead-capture"
+  ]
+}
