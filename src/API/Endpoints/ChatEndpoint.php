@@ -153,9 +153,19 @@ class ChatEndpoint {
 			flush();
 
 		} catch ( \Exception $e ) {
+			// Log error for debugging.
+			error_log( sprintf(
+				'ChatCommerce AI Error - Session: %s, Error: %s',
+				$session_id,
+				$e->getMessage()
+			) );
+
 			// Send error event.
 			echo "event: error\n";
-			echo "data: " . wp_json_encode( array( 'error' => $e->getMessage() ) ) . "\n\n";
+			echo "data: " . wp_json_encode( array(
+				'error' => $e->getMessage(),
+				'type' => 'stream_error'
+			) ) . "\n\n";
 			flush();
 		}
 
@@ -188,6 +198,13 @@ class ChatEndpoint {
 			);
 
 		} catch ( \Exception $e ) {
+			// Log error for debugging.
+			error_log( sprintf(
+				'ChatCommerce AI Error (Non-Stream) - Session: %s, Error: %s',
+				$session_id,
+				$e->getMessage()
+			) );
+
 			return new WP_Error(
 				'ai_error',
 				$e->getMessage(),

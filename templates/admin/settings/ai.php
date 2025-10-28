@@ -69,18 +69,24 @@ $has_api_key = ! empty( $settings['openai_api_key'] );
 		</th>
 		<td>
 			<select name="chatcommerce_ai[openai_model]" id="openai_model">
-				<option value="gpt-4-turbo-preview" <?php selected( $settings['openai_model'] ?? 'gpt-4-turbo-preview', 'gpt-4-turbo-preview' ); ?>>
-					GPT-4 Turbo (Recommended)
+				<option value="gpt-4o-mini" <?php selected( $settings['openai_model'] ?? 'gpt-4o-mini', 'gpt-4o-mini' ); ?>>
+					GPT-4o Mini (Recommended - Fast & Affordable)
 				</option>
-				<option value="gpt-4" <?php selected( $settings['openai_model'] ?? 'gpt-4-turbo-preview', 'gpt-4' ); ?>>
+				<option value="gpt-4-turbo-preview" <?php selected( $settings['openai_model'] ?? 'gpt-4o-mini', 'gpt-4-turbo-preview' ); ?>>
+					GPT-4 Turbo
+				</option>
+				<option value="gpt-4o" <?php selected( $settings['openai_model'] ?? 'gpt-4o-mini', 'gpt-4o' ); ?>>
+					GPT-4o (Latest)
+				</option>
+				<option value="gpt-4" <?php selected( $settings['openai_model'] ?? 'gpt-4o-mini', 'gpt-4' ); ?>>
 					GPT-4
 				</option>
-				<option value="gpt-3.5-turbo" <?php selected( $settings['openai_model'] ?? 'gpt-4-turbo-preview', 'gpt-3.5-turbo' ); ?>>
-					GPT-3.5 Turbo (Faster, Lower Cost)
+				<option value="gpt-3.5-turbo" <?php selected( $settings['openai_model'] ?? 'gpt-4o-mini', 'gpt-3.5-turbo' ); ?>>
+					GPT-3.5 Turbo (Legacy)
 				</option>
 			</select>
 			<p class="setting-description">
-				<?php esc_html_e( 'Choose the OpenAI model to use. GPT-4 Turbo offers the best balance of quality and speed.', 'chatcommerce-ai' ); ?>
+				<?php esc_html_e( 'GPT-4o Mini is recommended for most use cases - it offers excellent performance at a low cost. GPT-4o is more capable but costs more.', 'chatcommerce-ai' ); ?>
 			</p>
 		</td>
 	</tr>

@@ -156,30 +156,51 @@ document.addEventListener('alpine:init', () => {
 			this.messages.push(assistantMessage);
 			const messageIndex = this.messages.length - 1;
 
-			while (true) {
-				const { done, value } = await reader.read();
-				if (done) break;
+			try {
+				while (true) {
+					const { done, value } = await reader.read();
+					if (done) break;
 
-				const chunk = decoder.decode(value);
-				const lines = chunk.split('\n');
+					const chunk = decoder.decode(value);
+					const lines = chunk.split('\n');
 
-				for (const line of lines) {
-					if (line.startsWith('data: ')) {
-						try {
-							const data = JSON.parse(line.substring(6));
+					for (const line of lines) {
+						if (line.startsWith('event: error')) {
+							// Next line will have error data
+							continue;
+						}
 
-							if (data.chunk) {
-								this.messages[messageIndex].content += data.chunk;
-								this.scrollToBottom();
+						if (line.startsWith('data: ')) {
+							try {
+								const data = JSON.parse(line.substring(6));
+
+								// Handle errors from server
+								if (data.error) {
+									this.messages[messageIndex].content = '⚠️ Error: ' + data.error + '\n\nPlease check:\n• OpenAI API key is configured\n• You have API credits\n• Try refreshing the page';
+									this.messages[messageIndex].isStreaming = false;
+									this.messages[messageIndex].isError = true;
+									console.error('Chat API Error:', data.error);
+									return;
+								}
+
+								if (data.chunk) {
+									this.messages[messageIndex].content += data.chunk;
+									this.scrollToBottom();
+								}
+							} catch (e) {
+								// Ignore parsing errors for [DONE] and other markers
 							}
-						} catch (e) {
-							// Ignore parsing errors
 						}
 					}
 				}
-			}
 
-			this.messages[messageIndex].isStreaming = false;
+				this.messages[messageIndex].isStreaming = false;
+			} catch (error) {
+				this.messages[messageIndex].content = '⚠️ Connection error. Please check your internet connection and try again.';
+				this.messages[messageIndex].isStreaming = false;
+				this.messages[messageIndex].isError = true;
+				console.error('Stream error:', error);
+			}
 		},
 
 		// Submit feedback

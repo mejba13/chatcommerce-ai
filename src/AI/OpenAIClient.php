@@ -58,7 +58,7 @@ class OpenAIClient {
 		$settings = get_option( 'chatcommerce_ai_settings', array() );
 
 		$this->api_key     = AdminController::decrypt_api_key( $settings['openai_api_key'] ?? '' );
-		$this->model       = $settings['openai_model'] ?? 'gpt-4-turbo-preview';
+		$this->model       = $settings['openai_model'] ?? 'gpt-4o-mini';
 		$this->temperature = floatval( $settings['temperature'] ?? 0.7 );
 		$this->max_tokens  = intval( $settings['max_tokens'] ?? 500 );
 	}
