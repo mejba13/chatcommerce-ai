@@ -47,6 +47,8 @@ document.addEventListener('alpine:init', () => {
 		// Start session
 		async startSession() {
 			try {
+				console.log('[ChatCommerce] Starting session with API URL:', window.chatcommerceAI.apiUrl);
+
 				const response = await fetch(`${window.chatcommerceAI.apiUrl}/session/start`, {
 					method: 'POST',
 					headers: {
@@ -54,13 +56,20 @@ document.addEventListener('alpine:init', () => {
 					}
 				});
 
+				console.log('[ChatCommerce] Session response status:', response.status);
 				const data = await response.json();
+				console.log('[ChatCommerce] Session data:', data);
 
 				if (data.success) {
 					this.sessionId = data.session_id;
+					console.log('[ChatCommerce] Session ID:', this.sessionId);
+				} else {
+					console.error('[ChatCommerce] Session creation failed:', data);
+					alert('Failed to start chat session. Please refresh the page.');
 				}
 			} catch (error) {
-				console.error('Failed to start session:', error);
+				console.error('[ChatCommerce] Failed to start session:', error);
+				alert('Could not connect to chat service. Please check your internet connection.');
 			}
 		},
 
@@ -79,6 +88,15 @@ document.addEventListener('alpine:init', () => {
 			if (!this.inputMessage.trim() || this.isLoading) return;
 
 			const message = this.inputMessage.trim();
+			console.log('[ChatCommerce] Sending message:', message);
+			console.log('[ChatCommerce] Session ID:', this.sessionId);
+
+			if (!this.sessionId) {
+				alert('No active session. Please refresh the page.');
+				console.error('[ChatCommerce] No session ID! Cannot send message.');
+				return;
+			}
+
 			this.inputMessage = '';
 
 			// Add user message
@@ -96,7 +114,7 @@ document.addEventListener('alpine:init', () => {
 			try {
 				await this.streamResponse(message);
 			} catch (error) {
-				console.error('Chat error:', error);
+				console.error('[ChatCommerce] Chat error:', error);
 				this.messages.push({
 					id: Date.now(),
 					role: 'assistant',
@@ -112,6 +130,12 @@ document.addEventListener('alpine:init', () => {
 
 		// Stream response
 		async streamResponse(message) {
+			console.log('[ChatCommerce] Calling API:', `${window.chatcommerceAI.apiUrl}/chat/stream`);
+			console.log('[ChatCommerce] Request payload:', {
+				session_id: this.sessionId,
+				message: message,
+			});
+
 			const response = await fetch(`${window.chatcommerceAI.apiUrl}/chat/stream`, {
 				method: 'POST',
 				headers: {
@@ -124,10 +148,23 @@ document.addEventListener('alpine:init', () => {
 				}),
 			});
 
+			console.log('[ChatCommerce] Response status:', response.status);
+			console.log('[ChatCommerce] Response content-type:', response.headers.get('content-type'));
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				console.error('[ChatCommerce] API Error:', response.status, errorText);
+				throw new Error(`API returned ${response.status}: ${errorText}`);
+			}
+
 			if (response.headers.get('content-type')?.includes('text/event-stream')) {
+				console.log('[ChatCommerce] Using SSE stream');
 				await this.handleSSEStream(response);
 			} else {
+				console.log('[ChatCommerce] Using regular JSON response');
 				const data = await response.json();
+				console.log('[ChatCommerce] Response data:', data);
+
 				if (data.success) {
 					this.messages.push({
 						id: Date.now(),
@@ -136,6 +173,8 @@ document.addEventListener('alpine:init', () => {
 						timestamp: new Date(),
 					});
 					this.scrollToBottom();
+				} else {
+					console.error('[ChatCommerce] Response not successful:', data);
 				}
 			}
 		},
