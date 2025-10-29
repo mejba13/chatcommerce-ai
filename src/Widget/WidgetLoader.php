@@ -59,6 +59,7 @@ class WidgetLoader {
 			x-data="chatWidget"
 			x-init="init()"
 			class="fixed z-[9999] bottom-6 right-6"
+			style="position: fixed !important; bottom: 1.5rem !important; right: 1.5rem !important; left: auto !important; z-index: 999999 !important;"
 			x-cloak
 			role="region"
 			aria-label="Chat widget"
@@ -109,7 +110,7 @@ class WidgetLoader {
 				x-transition:leave="transition ease-in duration-180"
 				x-transition:leave-start="opacity-100 translate-y-0 scale-100"
 				x-transition:leave-end="opacity-0 translate-y-4 scale-96"
-				class="absolute right-0 bottom-24 w-[440px] max-w-[calc(100vw-2rem)] h-[680px] max-h-[calc(100vh-8rem)] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border-2 border-gray-200 md:bottom-24 md:h-[680px] sm:fixed sm:inset-0 sm:bottom-0 sm:right-0 sm:h-screen sm:w-screen sm:max-w-full sm:rounded-none"
+				class="absolute right-0 bottom-24 w-[400px] max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border-2 border-gray-200 md:bottom-24 md:h-[600px] sm:fixed sm:inset-0 sm:bottom-0 sm:right-0 sm:h-screen sm:w-screen sm:max-w-full sm:rounded-none"
 				style="box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);"
 				role="dialog"
 				aria-modal="true"
