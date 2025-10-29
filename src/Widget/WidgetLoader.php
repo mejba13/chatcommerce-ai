@@ -49,7 +49,8 @@ class WidgetLoader {
 	 */
 	private function get_widget_html() {
 		$settings = get_option( 'chatcommerce_ai_settings', array() );
-		$position = $settings['position'] ?? 'bottom-right';
+		// Force bottom-right position for modern UX
+		$position = 'bottom-right';
 
 		ob_start();
 		?>
@@ -57,10 +58,10 @@ class WidgetLoader {
 			id="chatcommerce-ai-widget"
 			x-data="chatWidget"
 			x-init="init()"
-			class="fixed z-[9999] <?php echo esc_attr( $position === 'bottom-left' ? 'bottom-6 left-6' : 'bottom-6 right-6' ); ?>"
+			class="fixed z-[9999] bottom-6 right-6"
 			x-cloak
 		>
-			<!-- Chat Toggle Button -->
+			<!-- Chat Toggle Button - Enhanced Modern Design -->
 			<button
 				@click="toggle()"
 				x-show="!isOpen"
@@ -70,22 +71,23 @@ class WidgetLoader {
 				x-transition:leave="transition ease-in duration-200"
 				x-transition:leave-start="opacity-100 scale-100"
 				x-transition:leave-end="opacity-0 scale-0"
-				class="group relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white rounded-full shadow-2xl hover:shadow-glow transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-primary-300"
+				class="group relative flex items-center justify-center w-[72px] h-[72px] bg-gradient-to-br from-primary-600 via-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white rounded-full shadow-2xl hover:shadow-glow transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-50"
+				style="box-shadow: 0 10px 40px rgba(2, 132, 199, 0.3);"
 				aria-label="Open chat"
 			>
-				<!-- Icon -->
-				<svg class="w-7 h-7 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+				<!-- Icon with better contrast -->
+				<svg class="w-8 h-8 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
 				</svg>
 
-				<!-- Notification Badge (optional) -->
-				<span class="absolute -top-1 -right-1 flex h-5 w-5">
-					<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
-					<span class="relative inline-flex rounded-full h-5 w-5 bg-accent-500 text-white text-xs items-center justify-center font-semibold">1</span>
+				<!-- Enhanced Notification Badge with better contrast -->
+				<span class="absolute -top-1 -right-1 flex h-6 w-6">
+					<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+					<span class="relative inline-flex rounded-full h-6 w-6 bg-red-500 text-white text-xs items-center justify-center font-bold shadow-lg ring-2 ring-white">1</span>
 				</span>
 			</button>
 
-			<!-- Chat Window -->
+			<!-- Chat Window - Enhanced Modern Design -->
 			<div
 				x-show="isOpen"
 				x-transition:enter="transition ease-out duration-300"
@@ -94,54 +96,58 @@ class WidgetLoader {
 				x-transition:leave="transition ease-in duration-200"
 				x-transition:leave-start="opacity-100 translate-y-0 scale-100"
 				x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-				class="absolute <?php echo esc_attr( $position === 'bottom-left' ? 'left-0' : 'right-0' ); ?> bottom-20 w-[420px] max-w-[calc(100vw-2rem)] h-[640px] max-h-[calc(100vh-8rem)] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-gray-100"
+				class="absolute right-0 bottom-24 w-[440px] max-w-[calc(100vw-2rem)] h-[680px] max-h-[calc(100vh-8rem)] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border-2 border-gray-200"
+				style="box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);"
 				@click.away="close()"
 			>
-				<!-- Header -->
-				<div class="relative flex items-center justify-between px-6 py-5 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+				<!-- Header - Enhanced with better contrast -->
+				<div class="relative flex items-center justify-between px-6 py-6 bg-gradient-to-br from-primary-600 via-primary-600 to-primary-700 text-white border-b-2 border-primary-800/20">
 					<!-- Brand -->
 					<div class="flex items-center space-x-3">
 						<?php if ( ! empty( $settings['brand_logo'] ) ) : ?>
-							<img src="<?php echo esc_url( $settings['brand_logo'] ); ?>" alt="Logo" class="w-10 h-10 rounded-full ring-2 ring-white/50">
+							<img src="<?php echo esc_url( $settings['brand_logo'] ); ?>" alt="Logo" class="w-12 h-12 rounded-full ring-2 ring-white/50 shadow-lg">
 						<?php else : ?>
-							<div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-								<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+							<div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/30 shadow-lg">
+								<svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20">
 									<path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
 								</svg>
 							</div>
 						<?php endif; ?>
 
 						<div>
-							<h3 class="text-lg font-semibold tracking-tight"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></h3>
-							<p class="text-xs text-primary-100" x-show="!isTyping">Online now</p>
-							<p class="text-xs text-primary-100 flex items-center" x-show="isTyping">
-								<span class="flex space-x-1">
-									<span class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 0ms"></span>
-									<span class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 150ms"></span>
-									<span class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+							<h3 class="text-lg font-bold tracking-tight"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></h3>
+							<p class="text-xs text-white/90 font-medium mt-0.5" x-show="!isTyping">
+								<span class="inline-block w-2 h-2 bg-green-400 rounded-full mr-1.5 animate-pulse"></span>
+								Online now
+							</p>
+							<p class="text-xs text-white/90 font-medium flex items-center mt-0.5" x-show="isTyping">
+								<span class="flex space-x-1 mr-2">
+									<span class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+									<span class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+									<span class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 300ms"></span>
 								</span>
-								<span class="ml-2">Typing</span>
+								Typing...
 							</p>
 						</div>
 					</div>
 
-					<!-- Close Button -->
+					<!-- Close Button - Enhanced -->
 					<button
 						@click="close()"
-						class="p-2 rounded-xl hover:bg-white/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/50"
+						class="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm"
 						aria-label="Close chat"
 					>
-						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
 						</svg>
 					</button>
 				</div>
 
-				<!-- Messages Container -->
+				<!-- Messages Container - Enhanced with better spacing -->
 				<div
 					x-ref="messages"
 					@scroll="onScroll()"
-					class="flex-1 overflow-y-auto px-6 py-6 space-y-4 chatcommerce-scrollbar bg-gradient-to-b from-gray-50/50 to-white"
+					class="flex-1 overflow-y-auto px-6 py-6 space-y-5 chatcommerce-scrollbar bg-gradient-to-b from-gray-50 to-white"
 				>
 					<!-- Message Loop -->
 					<template x-for="message in messages" :key="message.id">
@@ -149,20 +155,21 @@ class WidgetLoader {
 							class="animate-slide-up"
 							:class="message.role === 'user' ? 'flex justify-end' : 'flex justify-start'"
 						>
-							<div :class="message.role === 'user' ? 'max-w-[80%]' : 'max-w-[85%]'">
-								<!-- Message Bubble -->
+							<div :class="message.role === 'user' ? 'max-w-[82%]' : 'max-w-[85%]'">
+								<!-- Message Bubble - Enhanced with better contrast -->
 								<div
 									class="relative group"
 									:class="{
-										'bg-gradient-to-br from-primary-600 to-primary-700 text-white rounded-2xl rounded-br-md shadow-lg': message.role === 'user',
-										'bg-white text-gray-800 rounded-2xl rounded-bl-md shadow-soft border border-gray-100': message.role === 'assistant'
+										'bg-gradient-to-br from-primary-600 via-primary-600 to-primary-700 text-white rounded-2xl rounded-br-md shadow-xl': message.role === 'user',
+										'bg-white text-gray-900 rounded-2xl rounded-bl-md shadow-md border-2 border-gray-200': message.role === 'assistant'
 									}"
 								>
-									<div class="px-5 py-3.5">
+									<div class="px-5 py-4">
 										<p
-											class="text-sm leading-relaxed whitespace-pre-wrap break-words"
-											:class="message.role === 'user' ? 'text-white' : 'text-gray-800'"
+											class="text-[15px] font-medium leading-relaxed whitespace-pre-wrap break-words"
+											:class="message.role === 'user' ? 'text-white' : 'text-gray-900'"
 											x-html="message.content"
+											style="line-height: 1.6;"
 										></p>
 									</div>
 
@@ -176,17 +183,17 @@ class WidgetLoader {
 									</div>
 								</div>
 
-								<!-- Timestamp & Feedback -->
+								<!-- Timestamp & Feedback - Enhanced contrast -->
 								<div
-									class="mt-1.5 px-1 flex items-center"
+									class="mt-2 px-1 flex items-center"
 									:class="message.role === 'user' ? 'justify-end' : 'justify-between'"
 								>
-									<span class="text-xs text-gray-400" x-text="formatTime(message.timestamp)"></span>
+									<span class="text-xs font-semibold text-gray-500" x-text="formatTime(message.timestamp)"></span>
 
-									<!-- Feedback Buttons (Assistant messages only) -->
+									<!-- Feedback Buttons (Assistant messages only) - Enhanced visibility -->
 									<div
 										x-show="message.role === 'assistant' && !message.isStreaming"
-										class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+										class="flex items-center space-x-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
 									>
 										<button
 											@click="submitFeedback(message.id, 1)"
@@ -215,27 +222,27 @@ class WidgetLoader {
 					</template>
 				</div>
 
-				<!-- Scroll to Bottom Button -->
+				<!-- Scroll to Bottom Button - Enhanced -->
 				<div
 					x-show="showScrollButton"
 					x-transition
-					class="absolute bottom-24 left-1/2 transform -translate-x-1/2"
+					class="absolute bottom-28 left-1/2 transform -translate-x-1/2"
 				>
 					<button
 						@click="scrollToBottom()"
-						class="px-4 py-2 bg-white text-primary-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center space-x-2 border border-gray-200"
+						class="px-5 py-3 bg-white text-primary-600 rounded-full shadow-xl hover:shadow-2xl transition-all duration-200 flex items-center space-x-2 border-2 border-primary-200 hover:border-primary-300 hover:bg-primary-50"
 					>
-						<span class="text-sm font-medium">New messages</span>
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+						<span class="text-sm font-bold">New messages</span>
+						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
 						</svg>
 					</button>
 				</div>
 
-				<!-- Input Area -->
-				<div class="px-6 py-5 bg-white border-t border-gray-100">
+				<!-- Input Area - Enhanced with better contrast -->
+				<div class="px-6 py-5 bg-white border-t-2 border-gray-200">
 					<div class="flex items-end space-x-3">
-						<!-- Text Input -->
+						<!-- Text Input - Enhanced typography and contrast -->
 						<div class="flex-1 relative">
 							<textarea
 								x-ref="input"
@@ -243,8 +250,8 @@ class WidgetLoader {
 								@keydown="onKeyPress($event)"
 								placeholder="Type your message..."
 								rows="1"
-								class="block w-full px-4 py-3 pr-12 text-sm text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-2xl resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-								style="max-height: 120px; field-sizing: content;"
+								class="block w-full px-5 py-4 pr-12 text-[15px] font-medium text-gray-900 placeholder-gray-500 bg-gray-50 border-2 border-gray-300 rounded-2xl resize-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white transition-all duration-200 shadow-sm"
+								style="max-height: 120px; field-sizing: content; line-height: 1.5;"
 							></textarea>
 
 							<!-- Character count (optional) -->
@@ -253,26 +260,27 @@ class WidgetLoader {
 							</div>
 						</div>
 
-						<!-- Send Button -->
+						<!-- Send Button - Enhanced with better contrast -->
 						<button
 							@click="sendMessage()"
 							:disabled="!inputMessage.trim() || isLoading"
-							:class="inputMessage.trim() && !isLoading ? 'bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-glow scale-100 hover:scale-105' : 'bg-gray-300 cursor-not-allowed'"
-							class="flex-shrink-0 w-12 h-12 flex items-center justify-center text-white rounded-2xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-primary-300"
+							:class="inputMessage.trim() && !isLoading ? 'bg-gradient-to-br from-primary-600 via-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-xl hover:shadow-glow scale-100 hover:scale-105 ring-2 ring-primary-500/20' : 'bg-gray-400 cursor-not-allowed shadow-md'"
+							class="flex-shrink-0 w-14 h-14 flex items-center justify-center text-white rounded-2xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-primary-500/50"
 						>
 							<svg
 								x-show="!isLoading"
-								class="w-5 h-5 transform rotate-90"
+								class="w-6 h-6 transform rotate-90"
 								fill="currentColor"
 								viewBox="0 0 20 20"
+								stroke-width="0.5"
 							>
 								<path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
 							</svg>
 
-							<!-- Loading Spinner -->
+							<!-- Loading Spinner - Enhanced -->
 							<svg
 								x-show="isLoading"
-								class="w-5 h-5 animate-spin"
+								class="w-6 h-6 animate-spin"
 								fill="none"
 								viewBox="0 0 24 24"
 							>
@@ -282,10 +290,10 @@ class WidgetLoader {
 						</button>
 					</div>
 
-					<!-- Powered By (optional) -->
-					<div class="mt-3 text-center">
-						<p class="text-xs text-gray-400">
-							Powered by <span class="font-semibold text-gray-600">ChatCommerce AI</span>
+					<!-- Powered By - Enhanced typography -->
+					<div class="mt-4 text-center">
+						<p class="text-xs font-medium text-gray-500">
+							Powered by <span class="font-bold text-gray-700">ChatCommerce AI</span>
 						</p>
 					</div>
 				</div>
