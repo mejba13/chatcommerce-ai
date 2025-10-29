@@ -3,7 +3,7 @@
  * Plugin Name: ChatCommerce AI
  * Plugin URI: https://www.mejba.me/chatcommerce-ai
  * Description: 24/7 AI support and lead capture for WooCommerce with OpenAI-powered chat, product-aware responses, and modern, customizable UI.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Engr Mejba Ahmed
  * Author URI: https://www.mejba.me
  * License: GPL v2 or later
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin version.
-define( 'CHATCOMMERCE_AI_VERSION', '1.0.0' );
+define( 'CHATCOMMERCE_AI_VERSION', '1.1.0' );
 define( 'CHATCOMMERCE_AI_PLUGIN_FILE', __FILE__ );
 define( 'CHATCOMMERCE_AI_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CHATCOMMERCE_AI_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
