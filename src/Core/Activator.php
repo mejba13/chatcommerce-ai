@@ -172,7 +172,7 @@ class Activator {
 			'openai_api_key'       => '',
 			'openai_model'         => 'gpt-4o-mini',
 			'hf_access_token'      => '',
-			'hf_model'             => 'mistralai/Mistral-7B-Instruct-v0.2',
+			'hf_model'             => 'HuggingFaceH4/zephyr-7b-beta',
 			'temperature'          => 0.7,
 			'max_tokens'           => 500,
 			'sync_post_types'      => array( 'post', 'page', 'product' ),

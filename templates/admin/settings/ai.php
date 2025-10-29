@@ -203,7 +203,7 @@ $providers = ProviderFactory::get_available_providers();
 		<td>
 			<select name="chatcommerce_ai[hf_model]" id="hf_model" class="cc-form-select" style="max-width: 400px;">
 				<?php foreach ( $providers['huggingface']['models'] as $model_key => $model_label ) : ?>
-					<option value="<?php echo esc_attr( $model_key ); ?>" <?php selected( $settings['hf_model'] ?? 'mistralai/Mistral-7B-Instruct-v0.2', $model_key ); ?>>
+					<option value="<?php echo esc_attr( $model_key ); ?>" <?php selected( $settings['hf_model'] ?? 'HuggingFaceH4/zephyr-7b-beta', $model_key ); ?>>
 						<?php echo esc_html( $model_label ); ?>
 					</option>
 				<?php endforeach; ?>
@@ -612,7 +612,11 @@ if ( $has_any_key ) :
 						<?php echo $has_hf_token ? '—' : 'Not configured'; ?>
 					</div>
 					<div style="font-size: 11px; color: var(--cc-text-secondary);">
-						<?php echo esc_html( $settings['hf_model'] ?? 'Mistral-7B' ); ?>
+						<?php
+						$hf_model = $settings['hf_model'] ?? 'HuggingFaceH4/zephyr-7b-beta';
+						$hf_model_parts = explode( '/', $hf_model );
+						echo esc_html( end( $hf_model_parts ) );
+						?>
 					</div>
 				</div>
 			</div>

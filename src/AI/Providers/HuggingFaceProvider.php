@@ -67,7 +67,7 @@ class HuggingFaceProvider implements ChatProviderInterface {
 		}
 
 		$this->access_token = $decrypted_token;
-		$this->model        = $settings['hf_model'] ?? 'mistralai/Mistral-7B-Instruct-v0.2';
+		$this->model        = $settings['hf_model'] ?? 'HuggingFaceH4/zephyr-7b-beta';
 		$this->temperature  = floatval( $settings['temperature'] ?? 0.7 );
 		$this->max_tokens   = intval( $settings['max_tokens'] ?? 500 );
 	}

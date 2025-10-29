@@ -108,7 +108,7 @@ class Plugin {
 
 			// Also set default Hugging Face model for future use.
 			if ( ! isset( $settings['hf_model'] ) ) {
-				$settings['hf_model'] = 'mistralai/Mistral-7B-Instruct-v0.2';
+				$settings['hf_model'] = 'HuggingFaceH4/zephyr-7b-beta';
 			}
 
 			// Update settings.
