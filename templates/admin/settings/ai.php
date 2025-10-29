@@ -72,6 +72,96 @@ $has_api_key = ! empty( $settings['openai_api_key'] );
 					?>
 				</p>
 			<?php endif; ?>
+
+			<?php if ( $has_api_key ) : ?>
+				<!-- Test Connection Button -->
+				<div style="margin-top: 12px;">
+					<button
+						type="button"
+						id="cc-test-connection-btn"
+						class="button button-secondary"
+						style="display: inline-flex; align-items: center; gap: 8px;"
+					>
+						<span class="dashicons dashicons-admin-plugins" style="font-size: 16px; width: 16px; height: 16px; line-height: 1;"></span>
+						<?php esc_html_e( 'Test Connection', 'chatcommerce-ai' ); ?>
+					</button>
+					<span id="cc-test-connection-spinner" class="spinner" style="float: none; margin: 0 0 0 8px; display: none;"></span>
+				</div>
+
+				<!-- Test Result Display -->
+				<div id="cc-test-connection-result" style="margin-top: 12px; display: none;"></div>
+
+				<script>
+				(function($) {
+					$('#cc-test-connection-btn').on('click', function() {
+						const $btn = $(this);
+						const $spinner = $('#cc-test-connection-spinner');
+						const $result = $('#cc-test-connection-result');
+
+						// Disable button and show spinner
+						$btn.prop('disabled', true);
+						$spinner.css('display', 'inline-block').addClass('is-active');
+						$result.hide();
+
+						// Make AJAX request
+						$.ajax({
+							url: chatcommerceAIAdmin.apiUrl + '/test-connection',
+							method: 'POST',
+							beforeSend: function(xhr) {
+								xhr.setRequestHeader('X-WP-Nonce', chatcommerceAIAdmin.nonce);
+							},
+							success: function(response) {
+								$result.html(
+									'<div class="notice notice-success inline" style="margin: 0; padding: 8px 12px;">' +
+									'<p style="margin: 0;">' +
+									'<strong>✓ ' + response.message + '</strong><br>' +
+									'<span style="color: #666;">Model: ' + response.model + ' | ' +
+									'Latency: ' + response.latency_ms + 'ms | ' +
+									'Request ID: ' + response.request_id + '</span>' +
+									'</p>' +
+									'</div>'
+								).fadeIn();
+							},
+							error: function(xhr) {
+								let errorMsg = 'Connection test failed.';
+								let details = '';
+
+								if (xhr.responseJSON && xhr.responseJSON.message) {
+									errorMsg = xhr.responseJSON.message;
+
+									if (xhr.responseJSON.data) {
+										const data = xhr.responseJSON.data;
+										details = '<br><span style="color: #666; font-size: 12px;">';
+
+										if (data.latency_ms) {
+											details += 'Latency: ' + data.latency_ms + 'ms | ';
+										}
+										if (data.request_id) {
+											details += 'Request ID: ' + data.request_id;
+										}
+
+										details += '</span>';
+									}
+								}
+
+								$result.html(
+									'<div class="notice notice-error inline" style="margin: 0; padding: 8px 12px;">' +
+									'<p style="margin: 0;">' +
+									'<strong>✗ ' + errorMsg + '</strong>' +
+									details +
+									'</p>' +
+									'</div>'
+								).fadeIn();
+							},
+							complete: function() {
+								$btn.prop('disabled', false);
+								$spinner.removeClass('is-active').hide();
+							}
+						});
+					});
+				})(jQuery);
+				</script>
+			<?php endif; ?>
 		</td>
 	</tr>
 

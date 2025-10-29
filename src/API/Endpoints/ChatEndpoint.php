@@ -153,18 +153,34 @@ class ChatEndpoint {
 			flush();
 
 		} catch ( \Exception $e ) {
-			// Log error for debugging.
-			error_log( sprintf(
-				'ChatCommerce AI Error - Session: %s, Error: %s',
+			// Generate request ID for correlation.
+			$request_id = 'req_' . wp_generate_password( 16, false );
+
+			// Map error to user-friendly message.
+			$error_message = $this->map_error_message( $e->getMessage() );
+
+			// Log error with context and redacted API key.
+			$this->log_error(
+				'stream_error',
+				$request_id,
 				$session_id,
-				$e->getMessage()
-			) );
+				$e->getMessage(),
+				array(
+					'error_type'    => get_class( $e ),
+					'error_code'    => $e->getCode(),
+					'user_message'  => $error_message,
+				)
+			);
+
+			// Store error for diagnostics.
+			$this->store_error( 'stream_error', $error_message, $request_id );
 
 			// Send error event.
 			echo "event: error\n";
 			echo "data: " . wp_json_encode( array(
-				'error' => $e->getMessage(),
-				'type' => 'stream_error'
+				'error'      => $error_message,
+				'type'       => 'stream_error',
+				'request_id' => $request_id,
 			) ) . "\n\n";
 			flush();
 		}
@@ -198,17 +214,35 @@ class ChatEndpoint {
 			);
 
 		} catch ( \Exception $e ) {
-			// Log error for debugging.
-			error_log( sprintf(
-				'ChatCommerce AI Error (Non-Stream) - Session: %s, Error: %s',
+			// Generate request ID for correlation.
+			$request_id = 'req_' . wp_generate_password( 16, false );
+
+			// Map error to user-friendly message.
+			$error_message = $this->map_error_message( $e->getMessage() );
+
+			// Log error with context and redacted API key.
+			$this->log_error(
+				'chat_error',
+				$request_id,
 				$session_id,
-				$e->getMessage()
-			) );
+				$e->getMessage(),
+				array(
+					'error_type'    => get_class( $e ),
+					'error_code'    => $e->getCode(),
+					'user_message'  => $error_message,
+				)
+			);
+
+			// Store error for diagnostics.
+			$this->store_error( 'chat_error', $error_message, $request_id );
 
 			return new WP_Error(
 				'ai_error',
-				$e->getMessage(),
-				array( 'status' => 500 )
+				$error_message,
+				array(
+					'status'     => 500,
+					'request_id' => $request_id,
+				)
 			);
 		}
 	}
@@ -313,5 +347,107 @@ class ChatEndpoint {
 			},
 			$messages
 		) );
+	}
+
+	/**
+	 * Map error message to user-friendly format.
+	 *
+	 * @param string $error_message Raw error message.
+	 * @return string
+	 */
+	private function map_error_message( $error_message ) {
+		// Common OpenAI error patterns.
+		$error_patterns = array(
+			'/401/'                          => __( 'Invalid API key. Please check your OpenAI API key in settings.', 'chatcommerce-ai' ),
+			'/403/'                          => __( 'Access forbidden. Your API key may not have sufficient permissions.', 'chatcommerce-ai' ),
+			'/429/'                          => __( 'Rate limit exceeded. Please try again in a moment.', 'chatcommerce-ai' ),
+			'/500/'                          => __( 'OpenAI server error. Please try again later.', 'chatcommerce-ai' ),
+			'/502/'                          => __( 'Bad gateway. OpenAI service may be temporarily unavailable.', 'chatcommerce-ai' ),
+			'/503/'                          => __( 'Service unavailable. OpenAI is experiencing issues.', 'chatcommerce-ai' ),
+			'/timeout/i'                     => __( 'Request timed out. Please try again.', 'chatcommerce-ai' ),
+			'/network/i'                     => __( 'Network error. Please check your internet connection.', 'chatcommerce-ai' ),
+			'/insufficient_quota/i'          => __( 'OpenAI quota exceeded. Please check your billing at OpenAI Platform.', 'chatcommerce-ai' ),
+			'/invalid_request_error/i'       => __( 'Invalid request. Please contact support.', 'chatcommerce-ai' ),
+			'/model_not_found/i'             => __( 'AI model not found. Please check your model settings.', 'chatcommerce-ai' ),
+		);
+
+		foreach ( $error_patterns as $pattern => $message ) {
+			if ( preg_match( $pattern, $error_message ) ) {
+				return $message;
+			}
+		}
+
+		// Generic fallback.
+		return __( 'An error occurred while processing your request. Please try again.', 'chatcommerce-ai' );
+	}
+
+	/**
+	 * Log error with structured format and API key redaction.
+	 *
+	 * @param string $event_type Event type.
+	 * @param string $request_id Request ID.
+	 * @param string $session_id Session ID.
+	 * @param string $error_message Error message.
+	 * @param array  $context Additional context.
+	 */
+	private function log_error( $event_type, $request_id, $session_id, $error_message, $context = array() ) {
+		// Redact API key from error message.
+		$redacted_message = preg_replace( '/sk-[a-zA-Z0-9]{20,}/', 'sk-***REDACTED***', $error_message );
+
+		// Add base context.
+		$context = array_merge(
+			array(
+				'session_id' => $session_id,
+				'timestamp'  => current_time( 'c' ),
+				'user_id'    => get_current_user_id() ?: 'guest',
+			),
+			$context
+		);
+
+		// Use WordPress error_log with structured format.
+		error_log(
+			sprintf(
+				'[ChatCommerce AI] [%s] [%s] %s | Context: %s',
+				$event_type,
+				$request_id,
+				$redacted_message,
+				wp_json_encode( $context )
+			)
+		);
+	}
+
+	/**
+	 * Store error for diagnostics.
+	 *
+	 * @param string $code Error code.
+	 * @param string $message Error message.
+	 * @param string $request_id Request ID.
+	 */
+	private function store_error( $code, $message, $request_id ) {
+		// Store last error.
+		set_transient(
+			'chatcommerce_ai_last_error',
+			array(
+				'code'       => $code,
+				'message'    => $message,
+				'request_id' => $request_id,
+				'timestamp'  => current_time( 'c' ),
+			),
+			DAY_IN_SECONDS
+		);
+
+		// Store in recent errors list (last 5).
+		$recent_errors = get_option( 'chatcommerce_ai_recent_errors', array() );
+		array_unshift(
+			$recent_errors,
+			array(
+				'code'       => $code,
+				'message'    => $message,
+				'request_id' => $request_id,
+				'timestamp'  => current_time( 'c' ),
+			)
+		);
+		$recent_errors = array_slice( $recent_errors, 0, 5 );
+		update_option( 'chatcommerce_ai_recent_errors', $recent_errors );
 	}
 }
