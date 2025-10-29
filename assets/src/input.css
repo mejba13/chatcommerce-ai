@@ -20,20 +20,82 @@
 }
 
 @layer components {
+  /* Button Components - Matching Admin Design */
   .chatcommerce-btn-primary {
-    @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-primary-600 border border-transparent rounded-xl shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 ease-in-out;
+    @apply inline-flex items-center justify-center px-5 py-3 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 border border-transparent rounded-xl shadow-sm hover:from-primary-700 hover:to-primary-800 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 ease-out;
   }
 
   .chatcommerce-btn-secondary {
-    @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-xl hover:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 ease-in-out;
+    @apply inline-flex items-center justify-center px-5 py-3 text-sm font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-xl hover:bg-primary-100 hover:border-primary-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 ease-out;
   }
 
+  .chatcommerce-btn-ghost {
+    @apply inline-flex items-center justify-center px-5 py-3 text-sm font-medium text-neutral-700 bg-transparent border border-neutral-300 rounded-xl hover:bg-neutral-50 hover:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500 transition-all duration-200 ease-out;
+  }
+
+  /* Card Components */
   .chatcommerce-card {
-    @apply bg-white rounded-2xl shadow-soft p-6 transition-all duration-200 hover:shadow-xl;
+    @apply bg-white rounded-2xl shadow-soft p-6 border border-neutral-200 transition-all duration-200 hover:shadow-lg hover:border-neutral-300;
   }
 
+  /* Input Components */
   .chatcommerce-input {
-    @apply block w-full rounded-xl border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm transition-all duration-200;
+    @apply block w-full rounded-xl border-neutral-300 bg-white shadow-sm text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50 transition-all duration-200 placeholder-neutral-400;
+  }
+
+  .chatcommerce-textarea {
+    @apply block w-full rounded-xl border-neutral-300 bg-white shadow-sm text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50 transition-all duration-200 placeholder-neutral-400 resize-none;
+  }
+
+  /* Badge Components */
+  .chatcommerce-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .chatcommerce-badge-primary {
+    @apply chatcommerce-badge bg-primary-100 text-primary-800;
+  }
+
+  .chatcommerce-badge-success {
+    @apply chatcommerce-badge bg-success-100 text-success-800;
+  }
+
+  .chatcommerce-badge-warning {
+    @apply chatcommerce-badge bg-warning-100 text-warning-800;
+  }
+
+  .chatcommerce-badge-error {
+    @apply chatcommerce-badge bg-error-100 text-error-800;
+  }
+
+  /* Message Bubbles - Enhanced Design */
+  .chatcommerce-message {
+    @apply max-w-[85%] px-4 py-3 rounded-2xl shadow-sm transition-all duration-200;
+  }
+
+  .chatcommerce-message-user {
+    @apply chatcommerce-message bg-gradient-to-br from-primary-600 to-primary-700 text-white ml-auto;
+  }
+
+  .chatcommerce-message-bot {
+    @apply chatcommerce-message bg-neutral-100 text-neutral-900;
+  }
+
+  /* Widget Container - Modern Styling */
+  .chatcommerce-widget-container {
+    @apply fixed z-[9999] transition-all duration-300 ease-out;
+  }
+
+  .chatcommerce-widget-panel {
+    @apply w-full max-w-[420px] h-[640px] max-h-[calc(100vh-8rem)] bg-white rounded-3xl shadow-2xl border border-neutral-200 overflow-hidden flex flex-col transition-all duration-300;
+  }
+
+  .chatcommerce-widget-header {
+    @apply px-6 py-5 bg-gradient-to-r from-primary-600 to-primary-700 text-white flex items-center justify-between border-b border-white/10;
+  }
+
+  .chatcommerce-widget-footer {
+    @apply px-4 py-4 bg-white border-t border-neutral-200;
   }
 }
 
