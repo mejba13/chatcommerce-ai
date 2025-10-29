@@ -66,12 +66,24 @@ $settings = get_option( 'chatcommerce_ai_settings', array() );
 		<!-- Header -->
 		<div class="flex items-center justify-between px-4 py-3.5 bg-white border-b border-gray-100">
 			<div class="flex items-center space-x-3">
-				<div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0">
-					<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-						<path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
-						<path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/>
-					</svg>
-				</div>
+				<?php if ( ! empty( $settings['brand_logo'] ) ) : ?>
+					<!-- Brand Logo -->
+					<div class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-gray-200">
+						<img
+							src="<?php echo esc_url( $settings['brand_logo'] ); ?>"
+							alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"
+							class="w-full h-full object-cover"
+						/>
+					</div>
+				<?php else : ?>
+					<!-- Default Icon -->
+					<div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0">
+						<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+							<path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
+							<path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/>
+						</svg>
+					</div>
+				<?php endif; ?>
 				<div>
 					<h3 id="chat-header-title" class="text-sm font-semibold text-gray-900"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></h3>
 					<p class="text-xs text-gray-500 flex items-center" x-show="!isTyping">

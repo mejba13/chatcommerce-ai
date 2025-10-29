@@ -133,6 +133,7 @@ class AdminController {
 		$output['bg_color']        = sanitize_hex_color( $input['bg_color'] ?? '#ffffff' );
 		$output['text_color']      = sanitize_hex_color( $input['text_color'] ?? '#000000' );
 		$output['welcome_message'] = sanitize_textarea_field( $input['welcome_message'] ?? '' );
+		$output['brand_logo']      = esc_url_raw( $input['brand_logo'] ?? '' );
 
 		// AI settings.
 		if ( ! empty( $input['openai_api_key'] ) ) {
