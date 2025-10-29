@@ -60,20 +60,29 @@ class WidgetLoader {
 			x-init="init()"
 			class="fixed z-[9999] bottom-6 right-6"
 			x-cloak
+			role="region"
+			aria-label="Chat widget"
 		>
-			<!-- Chat Toggle Button - Enhanced Modern Design -->
+			<!-- Chat Toggle Button - Enhanced Modern Design with Accessibility -->
 			<button
 				@click="toggle()"
+				@keydown.enter="toggle()"
+				@keydown.space.prevent="toggle()"
 				x-show="!isOpen"
-				x-transition:enter="transition ease-out duration-300"
-				x-transition:enter-start="opacity-0 scale-0"
+				x-ref="launcher"
+				x-transition:enter="transition ease-out duration-200"
+				x-transition:enter-start="opacity-0 scale-90"
 				x-transition:enter-end="opacity-100 scale-100"
-				x-transition:leave="transition ease-in duration-200"
+				x-transition:leave="transition ease-in duration-150"
 				x-transition:leave-start="opacity-100 scale-100"
-				x-transition:leave-end="opacity-0 scale-0"
-				class="group relative flex items-center justify-center w-[72px] h-[72px] bg-gradient-to-br from-primary-600 via-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white rounded-full shadow-2xl hover:shadow-glow transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-50"
+				x-transition:leave-end="opacity-0 scale-90"
+				class="group relative flex items-center justify-center w-[72px] h-[72px] bg-gradient-to-br from-primary-600 via-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white rounded-full shadow-2xl hover:shadow-glow transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-50"
 				style="box-shadow: 0 10px 40px rgba(2, 132, 199, 0.3);"
 				aria-label="Open chat"
+				aria-expanded="false"
+				aria-haspopup="dialog"
+				aria-controls="chatcommerce-panel"
+				title="Open chat with <?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"
 			>
 				<!-- Icon with better contrast -->
 				<svg class="w-8 h-8 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
@@ -87,17 +96,24 @@ class WidgetLoader {
 				</span>
 			</button>
 
-			<!-- Chat Window - Enhanced Modern Design -->
+			<!-- Chat Window - Enhanced Modern Design with Accessibility -->
 			<div
+				id="chatcommerce-panel"
 				x-show="isOpen"
-				x-transition:enter="transition ease-out duration-300"
-				x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+				x-ref="panel"
+				x-trap.inert.noscroll="isOpen"
+				@keydown.escape="close()"
+				x-transition:enter="transition ease-out duration-200"
+				x-transition:enter-start="opacity-0 translate-y-4 scale-96"
 				x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-				x-transition:leave="transition ease-in duration-200"
+				x-transition:leave="transition ease-in duration-180"
 				x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-				x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-				class="absolute right-0 bottom-24 w-[440px] max-w-[calc(100vw-2rem)] h-[680px] max-h-[calc(100vh-8rem)] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border-2 border-gray-200"
+				x-transition:leave-end="opacity-0 translate-y-4 scale-96"
+				class="absolute right-0 bottom-24 w-[440px] max-w-[calc(100vw-2rem)] h-[680px] max-h-[calc(100vh-8rem)] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border-2 border-gray-200 md:bottom-24 md:h-[680px] sm:fixed sm:inset-0 sm:bottom-0 sm:right-0 sm:h-screen sm:w-screen sm:max-w-full sm:rounded-none"
 				style="box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="chat-header-title"
 				@click.away="close()"
 			>
 				<!-- Header - Enhanced with better contrast -->
@@ -115,13 +131,13 @@ class WidgetLoader {
 						<?php endif; ?>
 
 						<div>
-							<h3 class="text-lg font-bold tracking-tight"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></h3>
+							<h3 id="chat-header-title" class="text-lg font-bold tracking-tight"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></h3>
 							<p class="text-xs text-white/90 font-medium mt-0.5" x-show="!isTyping">
-								<span class="inline-block w-2 h-2 bg-green-400 rounded-full mr-1.5 animate-pulse"></span>
+								<span class="inline-block w-2 h-2 bg-green-400 rounded-full mr-1.5 animate-pulse" aria-hidden="true"></span>
 								Online now
 							</p>
-							<p class="text-xs text-white/90 font-medium flex items-center mt-0.5" x-show="isTyping">
-								<span class="flex space-x-1 mr-2">
+							<p class="text-xs text-white/90 font-medium flex items-center mt-0.5" x-show="isTyping" aria-live="polite" aria-atomic="true">
+								<span class="flex space-x-1 mr-2" aria-hidden="true">
 									<span class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0ms"></span>
 									<span class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 150ms"></span>
 									<span class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 300ms"></span>
@@ -131,11 +147,14 @@ class WidgetLoader {
 						</div>
 					</div>
 
-					<!-- Close Button - Enhanced -->
+					<!-- Close Button - Enhanced with Accessibility -->
 					<button
 						@click="close()"
+						@keydown.enter="close()"
+						@keydown.space.prevent="close()"
 						class="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm"
-						aria-label="Close chat"
+						aria-label="Close chat window"
+						title="Close chat (ESC)"
 					>
 						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
 							<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -143,11 +162,15 @@ class WidgetLoader {
 					</button>
 				</div>
 
-				<!-- Messages Container - Enhanced with better spacing -->
+				<!-- Messages Container - Enhanced with better spacing and Accessibility -->
 				<div
 					x-ref="messages"
 					@scroll="onScroll()"
 					class="flex-1 overflow-y-auto px-6 py-6 space-y-5 chatcommerce-scrollbar bg-gradient-to-b from-gray-50 to-white"
+					role="log"
+					aria-live="polite"
+					aria-atomic="false"
+					aria-label="Chat messages"
 				>
 					<!-- Message Loop -->
 					<template x-for="message in messages" :key="message.id">
@@ -199,9 +222,10 @@ class WidgetLoader {
 											@click="submitFeedback(message.id, 1)"
 											:class="message.feedback === 1 ? 'text-primary-600' : 'text-gray-400 hover:text-primary-600'"
 											class="p-1.5 rounded-lg hover:bg-gray-100 transition-all duration-200"
+											aria-label="Mark as helpful"
 											title="Helpful"
 										>
-											<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
 											</svg>
 										</button>
@@ -209,9 +233,10 @@ class WidgetLoader {
 											@click="submitFeedback(message.id, 0)"
 											:class="message.feedback === 0 ? 'text-red-600' : 'text-gray-400 hover:text-red-600'"
 											class="p-1.5 rounded-lg hover:bg-gray-100 transition-all duration-200"
+											aria-label="Mark as not helpful"
 											title="Not helpful"
 										>
-											<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"/>
 											</svg>
 										</button>
@@ -222,7 +247,7 @@ class WidgetLoader {
 					</template>
 				</div>
 
-				<!-- Scroll to Bottom Button - Enhanced -->
+				<!-- Scroll to Bottom Button - Enhanced with Accessibility -->
 				<div
 					x-show="showScrollButton"
 					x-transition
@@ -230,7 +255,8 @@ class WidgetLoader {
 				>
 					<button
 						@click="scrollToBottom()"
-						class="px-5 py-3 bg-white text-primary-600 rounded-full shadow-xl hover:shadow-2xl transition-all duration-200 flex items-center space-x-2 border-2 border-primary-200 hover:border-primary-300 hover:bg-primary-50"
+						class="px-5 py-3 bg-white text-primary-600 rounded-full shadow-xl hover:shadow-2xl transition-all duration-200 flex items-center space-x-2 border-2 border-primary-200 hover:border-primary-300 hover:bg-primary-50 focus:outline-none focus:ring-4 focus:ring-primary-500/50"
+						aria-label="Scroll to newest messages"
 					>
 						<span class="text-sm font-bold">New messages</span>
 						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
@@ -242,9 +268,11 @@ class WidgetLoader {
 				<!-- Input Area - Enhanced with better contrast -->
 				<div class="px-6 py-5 bg-white border-t-2 border-gray-200">
 					<div class="flex items-end space-x-3">
-						<!-- Text Input - Enhanced typography and contrast -->
+						<!-- Text Input - Enhanced typography and contrast with Accessibility -->
 						<div class="flex-1 relative">
+							<label for="chat-message-input" class="sr-only">Type your message</label>
 							<textarea
+								id="chat-message-input"
 								x-ref="input"
 								x-model="inputMessage"
 								@keydown="onKeyPress($event)"
@@ -252,20 +280,24 @@ class WidgetLoader {
 								rows="1"
 								class="block w-full px-5 py-4 pr-12 text-[15px] font-medium text-gray-900 placeholder-gray-500 bg-gray-50 border-2 border-gray-300 rounded-2xl resize-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white transition-all duration-200 shadow-sm"
 								style="max-height: 120px; field-sizing: content; line-height: 1.5;"
+								aria-label="Type your message"
+								aria-describedby="char-count"
 							></textarea>
 
 							<!-- Character count (optional) -->
-							<div class="absolute right-3 bottom-3 text-xs text-gray-400" x-show="inputMessage.length > 0">
+							<div id="char-count" class="absolute right-3 bottom-3 text-xs text-gray-400" x-show="inputMessage.length > 0" aria-live="polite">
 								<span x-text="inputMessage.length"></span>/1000
 							</div>
 						</div>
 
-						<!-- Send Button - Enhanced with better contrast -->
+						<!-- Send Button - Enhanced with better contrast and Accessibility -->
 						<button
 							@click="sendMessage()"
 							:disabled="!inputMessage.trim() || isLoading"
 							:class="inputMessage.trim() && !isLoading ? 'bg-gradient-to-br from-primary-600 via-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-xl hover:shadow-glow scale-100 hover:scale-105 ring-2 ring-primary-500/20' : 'bg-gray-400 cursor-not-allowed shadow-md'"
 							class="flex-shrink-0 w-14 h-14 flex items-center justify-center text-white rounded-2xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-primary-500/50"
+							:aria-label="isLoading ? 'Sending message' : 'Send message'"
+							:aria-busy="isLoading"
 						>
 							<svg
 								x-show="!isLoading"

@@ -129,11 +129,19 @@ class Plugin {
 			return;
 		}
 
+		// Enqueue widget design tokens (CSS variables for theming).
+		wp_enqueue_style(
+			'chatcommerce-ai-widget-tokens',
+			CHATCOMMERCE_AI_PLUGIN_URL . 'assets/css/widget-tokens.css',
+			array(),
+			CHATCOMMERCE_AI_VERSION
+		);
+
 		// Enqueue compiled Tailwind CSS with custom theme.
 		wp_enqueue_style(
 			'chatcommerce-ai-widget',
 			CHATCOMMERCE_AI_PLUGIN_URL . 'assets/css/widget.css',
-			array(),
+			array( 'chatcommerce-ai-widget-tokens' ),
 			CHATCOMMERCE_AI_VERSION . '.' . time() // Cache bust during development
 		);
 
