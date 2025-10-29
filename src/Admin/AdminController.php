@@ -135,14 +135,33 @@ class AdminController {
 		$output['welcome_message'] = sanitize_textarea_field( $input['welcome_message'] ?? '' );
 		$output['brand_logo']      = esc_url_raw( $input['brand_logo'] ?? '' );
 
-		// AI settings.
+		// AI Provider settings.
+		$output['ai_provider'] = sanitize_text_field( $input['ai_provider'] ?? 'openai' );
+
+		// Validate provider choice.
+		if ( ! in_array( $output['ai_provider'], array( 'openai', 'huggingface' ), true ) ) {
+			$output['ai_provider'] = 'openai';
+		}
+
+		// OpenAI settings.
 		if ( ! empty( $input['openai_api_key'] ) ) {
 			$output['openai_api_key'] = $this->encrypt_api_key( sanitize_text_field( $input['openai_api_key'] ) );
 		} else {
 			$output['openai_api_key'] = $input['openai_api_key_encrypted'] ?? '';
 		}
 
-		$output['openai_model'] = sanitize_text_field( $input['openai_model'] ?? 'gpt-4-turbo-preview' );
+		$output['openai_model'] = sanitize_text_field( $input['openai_model'] ?? 'gpt-4o-mini' );
+
+		// Hugging Face settings.
+		if ( ! empty( $input['hf_access_token'] ) ) {
+			$output['hf_access_token'] = $this->encrypt_api_key( sanitize_text_field( $input['hf_access_token'] ) );
+		} else {
+			$output['hf_access_token'] = $input['hf_access_token_encrypted'] ?? '';
+		}
+
+		$output['hf_model'] = sanitize_text_field( $input['hf_model'] ?? 'mistralai/Mistral-7B-Instruct-v0.2' );
+
+		// Model parameters (shared across providers).
 		$output['temperature']  = floatval( $input['temperature'] ?? 0.7 );
 		$output['max_tokens']   = intval( $input['max_tokens'] ?? 500 );
 
@@ -199,8 +218,8 @@ class AdminController {
 			return false;
 		}
 
-		// If it's already a plain OpenAI key (starts with sk-), return it.
-		if ( strpos( $encrypted_key, 'sk-' ) === 0 ) {
+		// If it's already a plain API key (starts with sk- or hf_), return it.
+		if ( strpos( $encrypted_key, 'sk-' ) === 0 || strpos( $encrypted_key, 'hf_' ) === 0 ) {
 			return $encrypted_key;
 		}
 
@@ -234,9 +253,9 @@ class AdminController {
 					return false;
 				}
 
-				// Validate it looks like an OpenAI key.
-				if ( strpos( $decrypted, 'sk-' ) !== 0 ) {
-					error_log( 'ChatCommerce AI: Decrypted key does not look like an OpenAI key' );
+				// Validate it looks like an API key (OpenAI or Hugging Face).
+				if ( strpos( $decrypted, 'sk-' ) !== 0 && strpos( $decrypted, 'hf_' ) !== 0 ) {
+					error_log( 'ChatCommerce AI: Decrypted key does not look like a valid API key' );
 					return false;
 				}
 
