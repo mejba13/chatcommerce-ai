@@ -286,3 +286,167 @@ $has_api_key = ! empty( $settings['openai_api_key'] );
 		<?php esc_html_e( 'You will be charged by OpenAI based on the number of tokens used. Monitor your usage at OpenAI Platform.', 'chatcommerce-ai' ); ?>
 	</p>
 </div>
+
+<?php if ( $has_api_key ) : ?>
+	<!-- System Diagnostics Panel -->
+	<div style="margin-top: 40px;">
+		<h2 style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--cc-border-default);">
+			<?php esc_html_e( 'System Diagnostics', 'chatcommerce-ai' ); ?>
+		</h2>
+
+		<?php
+		// Fetch system status.
+		$status_response = wp_remote_get(
+			rest_url( 'chatcommerce/v1/status' ),
+			array(
+				'headers' => array(
+					'X-WP-Nonce' => wp_create_nonce( 'wp_rest' ),
+				),
+			)
+		);
+
+		$status_data = null;
+		if ( ! is_wp_error( $status_response ) && 200 === wp_remote_retrieve_response_code( $status_response ) ) {
+			$body = wp_remote_retrieve_body( $status_response );
+			$data = json_decode( $body, true );
+			if ( isset( $data['status'] ) ) {
+				$status_data = $data['status'];
+			}
+		}
+		?>
+
+		<!-- Health Status Card -->
+		<div class="cc-card" style="margin-bottom: 20px; max-width: 800px;">
+			<h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: var(--cc-text-primary);">
+				<?php esc_html_e( 'Health Status', 'chatcommerce-ai' ); ?>
+			</h3>
+
+			<?php if ( $status_data ) : ?>
+				<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+					<!-- Plugin Status -->
+					<div style="padding: 12px; background: var(--cc-surface-raised); border-radius: var(--cc-radius-md); border-left: 3px solid <?php echo ! empty( $status_data['plugin']['enabled'] ) ? '#10b981' : '#6b7280'; ?>;">
+						<div style="font-size: 12px; color: var(--cc-text-secondary); margin-bottom: 4px;">
+							<?php esc_html_e( 'Plugin Status', 'chatcommerce-ai' ); ?>
+						</div>
+						<div style="font-size: 14px; font-weight: 600; color: var(--cc-text-primary);">
+							<?php echo ! empty( $status_data['plugin']['enabled'] ) ? '✓ ' . esc_html__( 'Enabled', 'chatcommerce-ai' ) : '○ ' . esc_html__( 'Disabled', 'chatcommerce-ai' ); ?>
+						</div>
+					</div>
+
+					<!-- REST API -->
+					<div style="padding: 12px; background: var(--cc-surface-raised); border-radius: var(--cc-radius-md); border-left: 3px solid <?php echo ! empty( $status_data['system']['rest_api'] ) ? '#10b981' : '#ef4444'; ?>;">
+						<div style="font-size: 12px; color: var(--cc-text-secondary); margin-bottom: 4px;">
+							<?php esc_html_e( 'REST API', 'chatcommerce-ai' ); ?>
+						</div>
+						<div style="font-size: 14px; font-weight: 600; color: var(--cc-text-primary);">
+							<?php echo ! empty( $status_data['system']['rest_api'] ) ? '✓ ' . esc_html__( 'Available', 'chatcommerce-ai' ) : '✗ ' . esc_html__( 'Unavailable', 'chatcommerce-ai' ); ?>
+						</div>
+					</div>
+
+					<!-- OpenAI Connection -->
+					<div style="padding: 12px; background: var(--cc-surface-raised); border-radius: var(--cc-radius-md); border-left: 3px solid <?php
+						if ( isset( $status_data['openai']['connectivity']['status'] ) ) {
+							echo 'connected' === $status_data['openai']['connectivity']['status'] ? '#10b981' : '#ef4444';
+						} else {
+							echo '#6b7280';
+						}
+					?>;">
+						<div style="font-size: 12px; color: var(--cc-text-secondary); margin-bottom: 4px;">
+							<?php esc_html_e( 'OpenAI Status', 'chatcommerce-ai' ); ?>
+						</div>
+						<div style="font-size: 14px; font-weight: 600; color: var(--cc-text-primary);">
+							<?php
+							if ( isset( $status_data['openai']['connectivity']['status'] ) ) {
+								if ( 'connected' === $status_data['openai']['connectivity']['status'] ) {
+									printf(
+										'✓ %s (%dms)',
+										esc_html__( 'Connected', 'chatcommerce-ai' ),
+										intval( $status_data['openai']['connectivity']['latency_ms'] ?? 0 )
+									);
+								} else {
+									echo '✗ ' . esc_html( $status_data['openai']['connectivity']['message'] ?? __( 'Error', 'chatcommerce-ai' ) );
+								}
+							} else {
+								echo '○ ' . esc_html__( 'Not configured', 'chatcommerce-ai' );
+							}
+							?>
+						</div>
+					</div>
+
+					<!-- Plugin Version -->
+					<div style="padding: 12px; background: var(--cc-surface-raised); border-radius: var(--cc-radius-md); border-left: 3px solid #3b82f6;">
+						<div style="font-size: 12px; color: var(--cc-text-secondary); margin-bottom: 4px;">
+							<?php esc_html_e( 'Version', 'chatcommerce-ai' ); ?>
+						</div>
+						<div style="font-size: 14px; font-weight: 600; color: var(--cc-text-primary);">
+							<?php echo esc_html( $status_data['plugin']['version'] ?? 'Unknown' ); ?>
+						</div>
+					</div>
+				</div>
+
+				<!-- System Information -->
+				<div style="padding: 12px; background: var(--cc-surface-base); border-radius: var(--cc-radius-md); font-size: 12px; color: var(--cc-text-secondary);">
+					<strong><?php esc_html_e( 'System:', 'chatcommerce-ai' ); ?></strong>
+					<?php
+					printf(
+						'PHP %s | WordPress %s | WooCommerce %s',
+						esc_html( $status_data['system']['php_version'] ?? 'Unknown' ),
+						esc_html( $status_data['system']['wp_version'] ?? 'Unknown' ),
+						esc_html( $status_data['system']['wc_version'] ?? 'N/A' )
+					);
+					?>
+				</div>
+			<?php else : ?>
+				<div class="notice notice-warning inline" style="margin: 0;">
+					<p><?php esc_html_e( 'Unable to fetch system status. Please check your REST API configuration.', 'chatcommerce-ai' ); ?></p>
+				</div>
+			<?php endif; ?>
+		</div>
+
+		<!-- Recent Errors Card -->
+		<?php
+		$recent_errors = get_option( 'chatcommerce_ai_recent_errors', array() );
+		if ( ! empty( $recent_errors ) ) :
+		?>
+			<div class="cc-card" style="max-width: 800px;">
+				<h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: var(--cc-text-primary);">
+					<?php esc_html_e( 'Recent Errors', 'chatcommerce-ai' ); ?>
+					<span style="font-size: 12px; font-weight: 400; color: var(--cc-text-secondary);">
+						(<?php printf( esc_html__( 'Last %d', 'chatcommerce-ai' ), count( $recent_errors ) ); ?>)
+					</span>
+				</h3>
+
+				<div style="display: flex; flex-direction: column; gap: 12px;">
+					<?php foreach ( $recent_errors as $error ) : ?>
+						<div style="padding: 12px; background: var(--cc-surface-raised); border-radius: var(--cc-radius-md); border-left: 3px solid #ef4444;">
+							<div style="display: flex; justify-content: between; align-items: start; margin-bottom: 4px;">
+								<div style="flex: 1;">
+									<div style="font-size: 13px; font-weight: 500; color: var(--cc-text-primary); margin-bottom: 4px;">
+										<?php echo esc_html( $error['message'] ?? 'Unknown error' ); ?>
+									</div>
+									<div style="font-size: 11px; color: var(--cc-text-secondary);">
+										<strong><?php esc_html_e( 'Code:', 'chatcommerce-ai' ); ?></strong> <?php echo esc_html( $error['code'] ?? 'unknown' ); ?>
+										|
+										<strong><?php esc_html_e( 'Request ID:', 'chatcommerce-ai' ); ?></strong> <?php echo esc_html( $error['request_id'] ?? 'N/A' ); ?>
+									</div>
+								</div>
+								<div style="font-size: 11px; color: var(--cc-text-tertiary); white-space: nowrap; margin-left: 16px;">
+									<?php
+									if ( isset( $error['timestamp'] ) ) {
+										$timestamp = strtotime( $error['timestamp'] );
+										echo esc_html( human_time_diff( $timestamp, current_time( 'timestamp' ) ) . ' ' . __( 'ago', 'chatcommerce-ai' ) );
+									}
+									?>
+								</div>
+							</div>
+						</div>
+					<?php endforeach; ?>
+				</div>
+
+				<p style="margin: 12px 0 0 0; font-size: 12px; color: var(--cc-text-secondary);">
+					<?php esc_html_e( 'Errors are logged for troubleshooting. Use the Request ID to correlate with server logs.', 'chatcommerce-ai' ); ?>
+				</p>
+			</div>
+		<?php endif; ?>
+	</div>
+<?php endif; ?>
