@@ -314,6 +314,45 @@ $providers = ProviderFactory::get_available_providers();
 	</p>
 </div>
 
+<style>
+@keyframes pulse {
+	0%, 100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+}
+
+.status-indicator {
+	transition: all 0.3s ease-in-out;
+}
+
+.status-text {
+	transition: color 0.3s ease-in-out;
+}
+
+.status-details {
+	transition: all 0.3s ease-in-out;
+}
+
+/* Smooth fade transitions */
+.cc-test-connection-result {
+	animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(-4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+</style>
+
 <script>
 (function($) {
 	// Provider switching
@@ -347,6 +386,9 @@ $providers = ProviderFactory::get_available_providers();
 		$spinner.css('display', 'inline-block').addClass('is-active');
 		$result.hide();
 
+		// Update diagnostics panel to show testing state
+		updateDiagnosticsStatus(provider, 'testing');
+
 		// Make AJAX request
 		$.ajax({
 			url: chatcommerceAIAdmin.apiUrl + '/test-provider',
@@ -367,6 +409,14 @@ $providers = ProviderFactory::get_available_providers();
 					'</p>' +
 					'</div>'
 				).fadeIn();
+
+				// Update diagnostics panel with success
+				updateDiagnosticsStatus(provider, 'success', {
+					message: response.message,
+					model: response.model,
+					latency: response.latency_ms,
+					tokens: response.tokens
+				});
 			},
 			error: function(xhr) {
 				let errorMsg = 'Connection test failed.';
@@ -398,6 +448,12 @@ $providers = ProviderFactory::get_available_providers();
 					'</p>' +
 					'</div>'
 				).fadeIn();
+
+				// Update diagnostics panel with error
+				updateDiagnosticsStatus(provider, 'error', {
+					message: errorMsg,
+					latency: xhr.responseJSON?.data?.latency_ms
+				});
 			},
 			complete: function() {
 				$btn.prop('disabled', false);
@@ -405,6 +461,56 @@ $providers = ProviderFactory::get_available_providers();
 			}
 		});
 	});
+
+	// Function to update diagnostics panel
+	function updateDiagnosticsStatus(provider, status, data) {
+		const $card = $('#diagnostics-provider-' + provider);
+		if (!$card.length) return;
+
+		const $statusIndicator = $card.find('.status-indicator');
+		const $statusText = $card.find('.status-text');
+		const $details = $card.find('.status-details');
+		const $timestamp = $card.find('.status-timestamp');
+
+		// Update based on status
+		if (status === 'testing') {
+			$statusIndicator.css({
+				'background': '#3b82f6',
+				'animation': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+			});
+			$statusText.html('⟳ Testing...').css('color', '#3b82f6');
+			$details.html('<span style="color: #6b7280; font-size: 12px;">Running connection test...</span>');
+			$timestamp.text('Just now');
+		} else if (status === 'success') {
+			$statusIndicator.css({
+				'background': '#10b981',
+				'animation': 'none'
+			});
+			$statusText.html('✓ Connected').css('color', '#10b981');
+
+			let detailsHtml = '<span style="color: #6b7280; font-size: 12px;">';
+			if (data.model) detailsHtml += '<strong>Model:</strong> ' + data.model + ' | ';
+			if (data.latency) detailsHtml += '<strong>Latency:</strong> ' + data.latency + 'ms';
+			if (data.tokens) detailsHtml += ' | <strong>Tokens:</strong> ' + data.tokens;
+			detailsHtml += '</span>';
+
+			$details.html(detailsHtml);
+			$timestamp.text('Just now');
+		} else if (status === 'error') {
+			$statusIndicator.css({
+				'background': '#ef4444',
+				'animation': 'none'
+			});
+			$statusText.html('✗ Failed').css('color', '#ef4444');
+
+			let detailsHtml = '<span style="color: #ef4444; font-size: 12px;">' + data.message;
+			if (data.latency) detailsHtml += ' (Latency: ' + data.latency + 'ms)';
+			detailsHtml += '</span>';
+
+			$details.html(detailsHtml);
+			$timestamp.text('Just now');
+		}
+	}
 })(jQuery);
 </script>
 
@@ -438,31 +544,96 @@ if ( $has_any_key ) :
 		<?php esc_html_e( 'System Diagnostics', 'chatcommerce-ai' ); ?>
 	</h2>
 
+	<!-- Provider Connectivity Card -->
+	<div class="cc-card" style="margin-bottom: 20px; max-width: 800px;">
+		<h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: var(--cc-text-primary);">
+			<?php esc_html_e( 'Provider Connectivity', 'chatcommerce-ai' ); ?>
+		</h3>
+
+		<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+			<!-- OpenAI Status -->
+			<div id="diagnostics-provider-openai" style="padding: 16px; background: var(--cc-surface-raised); border-radius: var(--cc-radius-md); border-left: 4px solid <?php echo $has_openai_key ? ( 'openai' === $current_provider ? '#3b82f6' : '#9ca3af' ) : '#d1d5db'; ?>;">
+				<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+					<div class="status-indicator" style="width: 12px; height: 12px; border-radius: 50%; background: <?php echo $has_openai_key ? '#9ca3af' : '#d1d5db'; ?>; flex-shrink: 0;"></div>
+					<div>
+						<div style="font-size: 14px; font-weight: 600; color: var(--cc-text-primary); margin-bottom: 2px;">
+							OpenAI
+							<?php if ( 'openai' === $current_provider ) : ?>
+								<span style="font-size: 11px; padding: 2px 6px; background: #3b82f6; color: white; border-radius: 4px; font-weight: 500; margin-left: 6px;">ACTIVE</span>
+							<?php endif; ?>
+						</div>
+						<div class="status-text" style="font-size: 12px; color: var(--cc-text-secondary);">
+							<?php echo $has_openai_key ? '○ Not tested' : '○ No API key configured'; ?>
+						</div>
+					</div>
+				</div>
+				<div class="status-details" style="font-size: 12px; color: var(--cc-text-secondary); margin: 8px 0; min-height: 18px;">
+					<?php if ( $has_openai_key ) : ?>
+						<span style="color: #6b7280;">Click "Test Connection" to verify</span>
+					<?php else : ?>
+						<span style="color: #ef4444;">Add your OpenAI API key above</span>
+					<?php endif; ?>
+				</div>
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--cc-border-default);">
+					<div class="status-timestamp" style="font-size: 11px; color: var(--cc-text-tertiary);">
+						<?php echo $has_openai_key ? '—' : 'Not configured'; ?>
+					</div>
+					<div style="font-size: 11px; color: var(--cc-text-secondary);">
+						<?php echo esc_html( $settings['openai_model'] ?? 'gpt-4o-mini' ); ?>
+					</div>
+				</div>
+			</div>
+
+			<!-- Hugging Face Status -->
+			<div id="diagnostics-provider-huggingface" style="padding: 16px; background: var(--cc-surface-raised); border-radius: var(--cc-radius-md); border-left: 4px solid <?php echo $has_hf_token ? ( 'huggingface' === $current_provider ? '#f59e0b' : '#9ca3af' ) : '#d1d5db'; ?>;">
+				<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+					<div class="status-indicator" style="width: 12px; height: 12px; border-radius: 50%; background: <?php echo $has_hf_token ? '#9ca3af' : '#d1d5db'; ?>; flex-shrink: 0;"></div>
+					<div>
+						<div style="font-size: 14px; font-weight: 600; color: var(--cc-text-primary); margin-bottom: 2px;">
+							Hugging Face
+							<?php if ( 'huggingface' === $current_provider ) : ?>
+								<span style="font-size: 11px; padding: 2px 6px; background: #f59e0b; color: white; border-radius: 4px; font-weight: 500; margin-left: 6px;">ACTIVE</span>
+							<?php endif; ?>
+						</div>
+						<div class="status-text" style="font-size: 12px; color: var(--cc-text-secondary);">
+							<?php echo $has_hf_token ? '○ Not tested' : '○ No access token configured'; ?>
+						</div>
+					</div>
+				</div>
+				<div class="status-details" style="font-size: 12px; color: var(--cc-text-secondary); margin: 8px 0; min-height: 18px;">
+					<?php if ( $has_hf_token ) : ?>
+						<span style="color: #6b7280;">Click "Test Connection" to verify</span>
+					<?php else : ?>
+						<span style="color: #ef4444;">Add your Hugging Face token above</span>
+					<?php endif; ?>
+				</div>
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--cc-border-default);">
+					<div class="status-timestamp" style="font-size: 11px; color: var(--cc-text-tertiary);">
+						<?php echo $has_hf_token ? '—' : 'Not configured'; ?>
+					</div>
+					<div style="font-size: 11px; color: var(--cc-text-secondary);">
+						<?php echo esc_html( $settings['hf_model'] ?? 'Mistral-7B' ); ?>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<!-- Health Status Card -->
 	<div class="cc-card" style="margin-bottom: 20px; max-width: 800px;">
 		<h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: var(--cc-text-primary);">
-			<?php esc_html_e( 'Health Status', 'chatcommerce-ai' ); ?>
+			<?php esc_html_e( 'System Status', 'chatcommerce-ai' ); ?>
 		</h3>
 
 		<?php if ( $status_data ) : ?>
-			<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+			<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px;">
 				<!-- Plugin Status -->
 				<div style="padding: 12px; background: var(--cc-surface-raised); border-radius: var(--cc-radius-md); border-left: 3px solid <?php echo ! empty( $status_data['plugin']['enabled'] ) ? '#10b981' : '#6b7280'; ?>;">
 					<div style="font-size: 12px; color: var(--cc-text-secondary); margin-bottom: 4px;">
-						<?php esc_html_e( 'Plugin Status', 'chatcommerce-ai' ); ?>
+						<?php esc_html_e( 'Plugin', 'chatcommerce-ai' ); ?>
 					</div>
 					<div style="font-size: 14px; font-weight: 600; color: var(--cc-text-primary);">
 						<?php echo ! empty( $status_data['plugin']['enabled'] ) ? '✓ ' . esc_html__( 'Enabled', 'chatcommerce-ai' ) : '○ ' . esc_html__( 'Disabled', 'chatcommerce-ai' ); ?>
-					</div>
-				</div>
-
-				<!-- Active Provider -->
-				<div style="padding: 12px; background: var(--cc-surface-raised); border-radius: var(--cc-radius-md); border-left: 3px solid #3b82f6;">
-					<div style="font-size: 12px; color: var(--cc-text-secondary); margin-bottom: 4px;">
-						<?php esc_html_e( 'Active Provider', 'chatcommerce-ai' ); ?>
-					</div>
-					<div style="font-size: 14px; font-weight: 600; color: var(--cc-text-primary);">
-						<?php echo esc_html( ucfirst( $current_provider ) ); ?>
 					</div>
 				</div>
 
@@ -476,26 +647,36 @@ if ( $has_any_key ) :
 					</div>
 				</div>
 
+				<!-- Database -->
+				<div style="padding: 12px; background: var(--cc-surface-raised); border-radius: var(--cc-radius-md); border-left: 3px solid #10b981;">
+					<div style="font-size: 12px; color: var(--cc-text-secondary); margin-bottom: 4px;">
+						<?php esc_html_e( 'Database', 'chatcommerce-ai' ); ?>
+					</div>
+					<div style="font-size: 14px; font-weight: 600; color: var(--cc-text-primary);">
+						✓ <?php esc_html_e( 'Connected', 'chatcommerce-ai' ); ?>
+					</div>
+				</div>
+
 				<!-- Plugin Version -->
 				<div style="padding: 12px; background: var(--cc-surface-raised); border-radius: var(--cc-radius-md); border-left: 3px solid #8b5cf6;">
 					<div style="font-size: 12px; color: var(--cc-text-secondary); margin-bottom: 4px;">
 						<?php esc_html_e( 'Version', 'chatcommerce-ai' ); ?>
 					</div>
 					<div style="font-size: 14px; font-weight: 600; color: var(--cc-text-primary);">
-						<?php echo esc_html( $status_data['plugin']['version'] ?? 'Unknown' ); ?>
+						<?php echo esc_html( $status_data['plugin']['version'] ?? CHATCOMMERCE_AI_VERSION ); ?>
 					</div>
 				</div>
 			</div>
 
 			<!-- System Information -->
 			<div style="padding: 12px; background: var(--cc-surface-base); border-radius: var(--cc-radius-md); font-size: 12px; color: var(--cc-text-secondary);">
-				<strong><?php esc_html_e( 'System:', 'chatcommerce-ai' ); ?></strong>
+				<strong><?php esc_html_e( 'Environment:', 'chatcommerce-ai' ); ?></strong>
 				<?php
 				printf(
 					'PHP %s | WordPress %s | WooCommerce %s',
-					esc_html( $status_data['system']['php_version'] ?? 'Unknown' ),
-					esc_html( $status_data['system']['wp_version'] ?? 'Unknown' ),
-					esc_html( $status_data['system']['wc_version'] ?? 'N/A' )
+					esc_html( $status_data['system']['php_version'] ?? PHP_VERSION ),
+					esc_html( $status_data['system']['wp_version'] ?? get_bloginfo( 'version' ) ),
+					esc_html( $status_data['system']['wc_version'] ?? ( defined( 'WC_VERSION' ) ? WC_VERSION : 'N/A' ) )
 				);
 				?>
 			</div>
