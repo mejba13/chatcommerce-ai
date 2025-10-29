@@ -209,6 +209,39 @@ class StatusEndpoint {
 
 		// Decrypt API key.
 		$api_key = AdminController::decrypt_api_key( $settings['openai_api_key'] );
+
+		// Check if decryption failed.
+		if ( false === $api_key || empty( $api_key ) ) {
+			$this->log_diagnostic(
+				'connection_test',
+				$request_id,
+				'Connection test failed: API key decryption failed',
+				array( 'user_id' => get_current_user_id() )
+			);
+
+			return new WP_Error(
+				'decryption_failed',
+				__( 'Failed to decrypt API key. Please re-enter your OpenAI API key in settings.', 'chatcommerce-ai' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Validate API key format.
+		if ( strpos( $api_key, 'sk-' ) !== 0 ) {
+			$this->log_diagnostic(
+				'connection_test',
+				$request_id,
+				'Connection test failed: Invalid API key format',
+				array( 'user_id' => get_current_user_id() )
+			);
+
+			return new WP_Error(
+				'invalid_key_format',
+				__( 'Invalid API key format. OpenAI API keys should start with "sk-". Please check your API key.', 'chatcommerce-ai' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		$model = $settings['openai_model'] ?? 'gpt-4o-mini';
 
 		// Make a lightweight test request to OpenAI.
@@ -373,6 +406,17 @@ class StatusEndpoint {
 
 		// Perform lightweight connectivity check.
 		$api_key = AdminController::decrypt_api_key( $settings['openai_api_key'] );
+
+		// Check if decryption failed.
+		if ( false === $api_key || empty( $api_key ) ) {
+			$result = array(
+				'status'  => 'error',
+				'message' => __( 'Failed to decrypt API key', 'chatcommerce-ai' ),
+			);
+			set_transient( 'chatcommerce_ai_connectivity_probe', $result, 5 * MINUTE_IN_SECONDS );
+			return $result;
+		}
+
 		$model = $settings['openai_model'] ?? 'gpt-4o-mini';
 
 		$start_time = microtime( true );

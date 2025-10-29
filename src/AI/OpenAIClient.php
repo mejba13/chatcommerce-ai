@@ -53,11 +53,26 @@ class OpenAIClient {
 
 	/**
 	 * Constructor.
+	 *
+	 * @throws \Exception If API key is not configured or decryption fails.
 	 */
 	public function __construct() {
 		$settings = get_option( 'chatcommerce_ai_settings', array() );
 
-		$this->api_key     = AdminController::decrypt_api_key( $settings['openai_api_key'] ?? '' );
+		// Decrypt API key.
+		$decrypted_key = AdminController::decrypt_api_key( $settings['openai_api_key'] ?? '' );
+
+		// Validate decryption.
+		if ( false === $decrypted_key || empty( $decrypted_key ) ) {
+			throw new \Exception( __( 'Failed to decrypt API key. Please re-enter your OpenAI API key in settings.', 'chatcommerce-ai' ) );
+		}
+
+		// Validate key format.
+		if ( strpos( $decrypted_key, 'sk-' ) !== 0 ) {
+			throw new \Exception( __( 'Invalid API key format. OpenAI API keys should start with "sk-".', 'chatcommerce-ai' ) );
+		}
+
+		$this->api_key     = $decrypted_key;
 		$this->model       = $settings['openai_model'] ?? 'gpt-4o-mini';
 		$this->temperature = floatval( $settings['temperature'] ?? 0.7 );
 		$this->max_tokens  = intval( $settings['max_tokens'] ?? 500 );

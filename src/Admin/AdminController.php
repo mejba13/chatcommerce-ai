@@ -192,17 +192,60 @@ class AdminController {
 	 * Decrypt API key.
 	 *
 	 * @param string $encrypted_key Encrypted API key.
-	 * @return string
+	 * @return string|false Decrypted key or false on failure.
 	 */
 	public static function decrypt_api_key( $encrypted_key ) {
-		if ( function_exists( 'openssl_decrypt' ) && ! empty( $encrypted_key ) ) {
-			$encryption_key = wp_salt( 'auth' );
-			$data           = base64_decode( $encrypted_key );
-			$iv_length      = openssl_cipher_iv_length( 'AES-256-CBC' );
-			$iv             = substr( $data, 0, $iv_length );
-			$encrypted      = substr( $data, $iv_length );
+		if ( empty( $encrypted_key ) ) {
+			return false;
+		}
 
-			return openssl_decrypt( $encrypted, 'AES-256-CBC', $encryption_key, 0, $iv );
+		// If it's already a plain OpenAI key (starts with sk-), return it.
+		if ( strpos( $encrypted_key, 'sk-' ) === 0 ) {
+			return $encrypted_key;
+		}
+
+		if ( function_exists( 'openssl_decrypt' ) ) {
+			try {
+				$encryption_key = wp_salt( 'auth' );
+				$data           = base64_decode( $encrypted_key, true );
+
+				// Validate base64 decode.
+				if ( false === $data ) {
+					error_log( 'ChatCommerce AI: Failed to base64 decode API key' );
+					return false;
+				}
+
+				$iv_length = openssl_cipher_iv_length( 'AES-256-CBC' );
+
+				// Validate data length.
+				if ( strlen( $data ) < $iv_length ) {
+					error_log( 'ChatCommerce AI: Encrypted data too short' );
+					return false;
+				}
+
+				$iv        = substr( $data, 0, $iv_length );
+				$encrypted = substr( $data, $iv_length );
+
+				$decrypted = openssl_decrypt( $encrypted, 'AES-256-CBC', $encryption_key, 0, $iv );
+
+				// Validate decryption result.
+				if ( false === $decrypted ) {
+					error_log( 'ChatCommerce AI: Failed to decrypt API key' );
+					return false;
+				}
+
+				// Validate it looks like an OpenAI key.
+				if ( strpos( $decrypted, 'sk-' ) !== 0 ) {
+					error_log( 'ChatCommerce AI: Decrypted key does not look like an OpenAI key' );
+					return false;
+				}
+
+				return $decrypted;
+
+			} catch ( \Exception $e ) {
+				error_log( 'ChatCommerce AI: Exception during decryption - ' . $e->getMessage() );
+				return false;
+			}
 		}
 
 		return $encrypted_key; // Return as-is if not encrypted.
