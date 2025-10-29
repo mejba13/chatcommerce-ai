@@ -98,10 +98,31 @@
 	transition: all var(--cc-duration-normal) var(--cc-ease-out);
 }
 
+.cc-card:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--cc-shadow-md);
+	border-color: var(--cc-border-hover);
+}
+
 .cc-card-hover:hover {
 	transform: translateY(-2px);
 	box-shadow: var(--cc-shadow-md);
 	border-color: var(--cc-border-hover);
+}
+
+/* Floating card variant with enhanced hover effect */
+.cc-card-float {
+	background: var(--cc-surface-raised);
+	border: 1px solid var(--cc-border-default);
+	border-radius: var(--cc-radius-xl);
+	padding: var(--cc-space-6);
+	box-shadow: var(--cc-shadow-md);
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cc-card-float:hover {
+	box-shadow: var(--cc-shadow-xl);
+	transform: translateY(-4px) scale(1.01);
 }
 
 .cc-card-compact {
