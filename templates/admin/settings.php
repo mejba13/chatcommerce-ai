@@ -36,23 +36,41 @@ $tabs = array(
 
 ?>
 
-<div class="wrap chatcommerce-ai-settings">
-	<h1><?php esc_html_e( 'ChatCommerce AI Settings', 'chatcommerce-ai' ); ?></h1>
+<div class="wrap chatcommerce-ai-wrap chatcommerce-ai-settings">
+	<!-- Page Header -->
+	<div class="cc-page-header">
+		<div>
+			<h1 class="cc-page-title"><?php esc_html_e( 'Settings', 'chatcommerce-ai' ); ?></h1>
+			<p class="cc-text-small" style="margin: var(--cc-space-2) 0 0 0;">
+				<?php esc_html_e( 'Configure your ChatCommerce AI chatbot settings', 'chatcommerce-ai' ); ?>
+			</p>
+		</div>
+		<div class="cc-page-actions">
+			<a href="<?php echo esc_url( admin_url( 'admin.php?page=chatcommerce-ai' ) ); ?>" class="cc-button cc-button-ghost">
+				<?php esc_html_e( 'Back to Dashboard', 'chatcommerce-ai' ); ?>
+			</a>
+		</div>
+	</div>
 
-	<nav class="nav-tab-wrapper">
+	<!-- Tabs Navigation -->
+	<nav class="nav-tab-wrapper" role="tablist">
 		<?php foreach ( $tabs as $tab_key => $tab_label ) : ?>
 			<a
 				href="<?php echo esc_url( admin_url( 'admin.php?page=chatcommerce-ai-settings&tab=' . $tab_key ) ); ?>"
-				class="nav-tab <?php echo $active_tab === $tab_key ? 'nav-tab-active' : ''; ?>">
+				class="nav-tab <?php echo $active_tab === $tab_key ? 'nav-tab-active' : ''; ?>"
+				role="tab"
+				aria-selected="<?php echo $active_tab === $tab_key ? 'true' : 'false'; ?>"
+				aria-controls="settings-<?php echo esc_attr( $tab_key ); ?>">
 				<?php echo esc_html( $tab_label ); ?>
 			</a>
 		<?php endforeach; ?>
 	</nav>
 
+	<!-- Settings Form -->
 	<form method="post" action="">
 		<?php wp_nonce_field( 'chatcommerce_ai_settings' ); ?>
 
-		<div class="tab-content">
+		<div class="tab-content" id="settings-<?php echo esc_attr( $active_tab ); ?>" role="tabpanel">
 			<?php
 			switch ( $active_tab ) {
 				case 'general':
@@ -80,45 +98,11 @@ $tabs = array(
 			?>
 		</div>
 
-		<?php submit_button( __( 'Save Settings', 'chatcommerce-ai' ), 'primary', 'chatcommerce_ai_settings_submit' ); ?>
+		<div class="cc-card-footer" style="margin-top: var(--cc-space-6); padding: var(--cc-space-6); background: var(--cc-surface-raised); border: 1px solid var(--cc-border-default); border-radius: var(--cc-radius-xl);">
+			<?php submit_button( __( 'Save Settings', 'chatcommerce-ai' ), 'primary', 'chatcommerce_ai_settings_submit', false ); ?>
+			<button type="button" class="button cc-button cc-button-ghost" onclick="window.location.reload();">
+				<?php esc_html_e( 'Reset', 'chatcommerce-ai' ); ?>
+			</button>
+		</div>
 	</form>
 </div>
-
-<style>
-.chatcommerce-ai-settings .tab-content {
-	background: #fff;
-	border: 1px solid #ccd0d4;
-	border-top: none;
-	padding: 20px;
-	margin: 0 0 20px 0;
-}
-
-.chatcommerce-ai-settings table.form-table {
-	margin-top: 20px;
-}
-
-.chatcommerce-ai-settings .setting-description {
-	color: #646970;
-	font-size: 13px;
-	margin: 5px 0 0 0;
-}
-
-.chatcommerce-ai-settings .color-picker-group {
-	display: flex;
-	gap: 10px;
-	align-items: center;
-}
-
-.chatcommerce-ai-settings input[type="color"] {
-	height: 40px;
-	width: 80px;
-	border: 1px solid #8c8f94;
-	border-radius: 4px;
-	cursor: pointer;
-}
-
-.chatcommerce-ai-settings .api-key-input {
-	font-family: monospace;
-	width: 400px;
-}
-</style>

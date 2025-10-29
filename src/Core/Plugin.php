@@ -193,11 +193,27 @@ class Plugin {
 			return;
 		}
 
-		// Enqueue admin CSS.
+		// Enqueue design tokens (CSS variables foundation).
+		wp_enqueue_style(
+			'chatcommerce-ai-design-tokens',
+			CHATCOMMERCE_AI_PLUGIN_URL . 'assets/css/design-tokens.css',
+			array(),
+			CHATCOMMERCE_AI_VERSION
+		);
+
+		// Enqueue component library.
+		wp_enqueue_style(
+			'chatcommerce-ai-components',
+			CHATCOMMERCE_AI_PLUGIN_URL . 'assets/css/components.css',
+			array( 'chatcommerce-ai-design-tokens' ),
+			CHATCOMMERCE_AI_VERSION
+		);
+
+		// Enqueue admin CSS (page-specific styles).
 		wp_enqueue_style(
 			'chatcommerce-ai-admin',
 			CHATCOMMERCE_AI_PLUGIN_URL . 'assets/css/admin.css',
-			array( 'wp-components' ),
+			array( 'chatcommerce-ai-components', 'wp-components' ),
 			CHATCOMMERCE_AI_VERSION
 		);
 
@@ -215,9 +231,10 @@ class Plugin {
 			'chatcommerce-ai-admin',
 			'chatcommerceAIAdmin',
 			array(
-				'apiUrl'   => rest_url( 'chatcommerce/v1' ),
-				'nonce'    => wp_create_nonce( 'wp_rest' ),
-				'settings' => get_option( 'chatcommerce_ai_settings', array() ),
+				'apiUrl'       => rest_url( 'chatcommerce/v1' ),
+				'nonce'        => wp_create_nonce( 'wp_rest' ),
+				'dismissNonce' => wp_create_nonce( 'chatcommerce_ai_dismiss_notice' ),
+				'settings'     => get_option( 'chatcommerce_ai_settings', array() ),
 			)
 		);
 	}

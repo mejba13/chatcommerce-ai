@@ -24,33 +24,45 @@ $has_api_key = ! empty( $settings['openai_api_key'] );
 			<label for="openai_api_key"><?php esc_html_e( 'OpenAI API Key', 'chatcommerce-ai' ); ?></label>
 		</th>
 		<td>
+			<div class="cc-api-key-wrapper">
+				<?php if ( $has_api_key ) : ?>
+					<input
+						type="password"
+						name="chatcommerce_ai[openai_api_key]"
+						id="openai_api_key"
+						value="••••••••••••••••••••••••••••••••"
+						class="cc-api-key-input"
+						placeholder="sk-..."
+						data-has-key="true"
+					/>
+					<input
+						type="hidden"
+						name="chatcommerce_ai[openai_api_key_encrypted]"
+						value="<?php echo esc_attr( $settings['openai_api_key'] ); ?>"
+					/>
+					<button type="button" class="cc-toggle-api-key" aria-label="<?php esc_attr_e( 'Toggle API key visibility', 'chatcommerce-ai' ); ?>">
+						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
+					</button>
+				<?php else : ?>
+					<input
+						type="password"
+						name="chatcommerce_ai[openai_api_key]"
+						id="openai_api_key"
+						value=""
+						class="cc-api-key-input"
+						placeholder="sk-..."
+					/>
+					<button type="button" class="cc-toggle-api-key" aria-label="<?php esc_attr_e( 'Toggle API key visibility', 'chatcommerce-ai' ); ?>">
+						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
+					</button>
+				<?php endif; ?>
+			</div>
 			<?php if ( $has_api_key ) : ?>
-				<input
-					type="password"
-					name="chatcommerce_ai[openai_api_key]"
-					id="openai_api_key"
-					value="••••••••••••••••"
-					class="api-key-input"
-					placeholder="sk-..."
-				/>
-				<input
-					type="hidden"
-					name="chatcommerce_ai[openai_api_key_encrypted]"
-					value="<?php echo esc_attr( $settings['openai_api_key'] ); ?>"
-				/>
-				<p class="setting-description">
-					<?php esc_html_e( 'API key is set. Enter a new key to replace it, or leave blank to keep the existing key.', 'chatcommerce-ai' ); ?>
+				<p class="description">
+					<?php esc_html_e( 'API key is set and encrypted. Click the eye icon to view, or enter a new key to replace it.', 'chatcommerce-ai' ); ?>
 				</p>
 			<?php else : ?>
-				<input
-					type="text"
-					name="chatcommerce_ai[openai_api_key]"
-					id="openai_api_key"
-					value=""
-					class="api-key-input"
-					placeholder="sk-..."
-				/>
-				<p class="setting-description">
+				<p class="description">
 					<?php
 					printf(
 						/* translators: %s: OpenAI API keys URL */
@@ -68,24 +80,24 @@ $has_api_key = ! empty( $settings['openai_api_key'] );
 			<label for="openai_model"><?php esc_html_e( 'AI Model', 'chatcommerce-ai' ); ?></label>
 		</th>
 		<td>
-			<select name="chatcommerce_ai[openai_model]" id="openai_model">
+			<select name="chatcommerce_ai[openai_model]" id="openai_model" class="cc-form-select" style="max-width: 400px;">
 				<option value="gpt-4o-mini" <?php selected( $settings['openai_model'] ?? 'gpt-4o-mini', 'gpt-4o-mini' ); ?>>
-					GPT-4o Mini (Recommended - Fast & Affordable)
+					⚡ GPT-4o Mini (Recommended - Fast & Affordable)
 				</option>
 				<option value="gpt-4-turbo-preview" <?php selected( $settings['openai_model'] ?? 'gpt-4o-mini', 'gpt-4-turbo-preview' ); ?>>
-					GPT-4 Turbo
+					🚀 GPT-4 Turbo
 				</option>
 				<option value="gpt-4o" <?php selected( $settings['openai_model'] ?? 'gpt-4o-mini', 'gpt-4o' ); ?>>
-					GPT-4o (Latest)
+					✨ GPT-4o (Latest)
 				</option>
 				<option value="gpt-4" <?php selected( $settings['openai_model'] ?? 'gpt-4o-mini', 'gpt-4' ); ?>>
-					GPT-4
+					🎯 GPT-4
 				</option>
 				<option value="gpt-3.5-turbo" <?php selected( $settings['openai_model'] ?? 'gpt-4o-mini', 'gpt-3.5-turbo' ); ?>>
-					GPT-3.5 Turbo (Legacy)
+					📦 GPT-3.5 Turbo (Legacy)
 				</option>
 			</select>
-			<p class="setting-description">
+			<p class="description">
 				<?php esc_html_e( 'GPT-4o Mini is recommended for most use cases - it offers excellent performance at a low cost. GPT-4o is more capable but costs more.', 'chatcommerce-ai' ); ?>
 			</p>
 		</td>

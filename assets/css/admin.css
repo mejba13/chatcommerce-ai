@@ -1,16 +1,424 @@
 /**
- * ChatCommerce AI Admin Styles
+ * ChatCommerce AI Admin Page-Specific Styles
+ * Modern Classic Design System
  *
  * @package ChatCommerceAI
  */
 
-/* Minimal admin styles - WordPress provides most styling */
-.chatcommerce-ai-dashboard .stat-card,
-.chatcommerce-ai-dashboard .quick-action-card {
-	transition: transform 0.2s;
+/* ============================================
+   ADMIN PAGE LAYOUT
+   ============================================ */
+.chatcommerce-ai-wrap {
+	background: var(--cc-surface-base);
+	margin-left: -20px;
+	margin-right: -20px;
+	padding: var(--cc-space-8) var(--cc-space-8) var(--cc-space-12);
+	min-height: calc(100vh - 32px);
 }
 
-.chatcommerce-ai-dashboard .stat-card:hover,
-.chatcommerce-ai-dashboard .quick-action-card:hover {
-	transform: translateY(-2px);
+/* WordPress admin title override */
+.chatcommerce-ai-wrap > h1:first-child {
+	display: none;
+}
+
+/* ============================================
+   DASHBOARD SPECIFIC STYLES
+   ============================================ */
+.chatcommerce-ai-dashboard {
+	max-width: 1400px;
+	margin: 0 auto;
+}
+
+/* ============================================
+   SETTINGS PAGE SPECIFIC STYLES
+   ============================================ */
+.chatcommerce-ai-settings {
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+.chatcommerce-ai-settings .nav-tab-wrapper {
+	border-bottom: 2px solid var(--cc-border-default);
+	margin-bottom: var(--cc-space-6);
+	padding: 0;
+}
+
+.chatcommerce-ai-settings .nav-tab {
+	padding: var(--cc-space-3) var(--cc-space-6);
+	border: none;
+	border-bottom: 2px solid transparent;
+	margin: 0 var(--cc-space-2) -2px 0;
+	font-size: var(--cc-text-base);
+	font-weight: var(--cc-font-medium);
+	color: var(--cc-text-secondary);
+	background: transparent;
+	transition: all var(--cc-duration-fast) var(--cc-ease-out);
+}
+
+.chatcommerce-ai-settings .nav-tab:hover {
+	color: var(--cc-text-primary);
+	border-bottom-color: var(--cc-color-neutral-300);
+}
+
+.chatcommerce-ai-settings .nav-tab-active {
+	color: var(--cc-color-primary-600);
+	border-bottom-color: var(--cc-color-primary-600);
+	font-weight: var(--cc-font-semibold);
+}
+
+.chatcommerce-ai-settings .tab-content {
+	background: var(--cc-surface-raised);
+	border: 1px solid var(--cc-border-default);
+	border-radius: var(--cc-radius-xl);
+	padding: var(--cc-space-8);
+	box-shadow: var(--cc-shadow-sm);
+}
+
+/* ============================================
+   FORM TABLE OVERRIDES
+   WordPress form-table improvements
+   ============================================ */
+.chatcommerce-ai-wrap table.form-table {
+	margin-top: 0;
+	background: none;
+}
+
+.chatcommerce-ai-wrap table.form-table th {
+	padding: var(--cc-space-4) 0;
+	font-weight: var(--cc-font-semibold);
+	color: var(--cc-text-primary);
+	font-size: var(--cc-text-sm);
+}
+
+.chatcommerce-ai-wrap table.form-table td {
+	padding: var(--cc-space-4) 0;
+}
+
+.chatcommerce-ai-wrap table.form-table input[type="text"],
+.chatcommerce-ai-wrap table.form-table input[type="email"],
+.chatcommerce-ai-wrap table.form-table input[type="url"],
+.chatcommerce-ai-wrap table.form-table input[type="number"],
+.chatcommerce-ai-wrap table.form-table textarea,
+.chatcommerce-ai-wrap table.form-table select {
+	border: 1px solid var(--cc-border-default);
+	border-radius: var(--cc-radius-md);
+	padding: var(--cc-space-3) var(--cc-space-4);
+	font-size: var(--cc-text-base);
+	transition: all var(--cc-duration-fast) var(--cc-ease-out);
+}
+
+.chatcommerce-ai-wrap table.form-table input:focus,
+.chatcommerce-ai-wrap table.form-table textarea:focus,
+.chatcommerce-ai-wrap table.form-table select:focus {
+	border-color: var(--cc-border-focus);
+	box-shadow: var(--cc-shadow-focus);
+	outline: none;
+}
+
+/* Enhanced Select Dropdown Styling */
+.chatcommerce-ai-wrap table.form-table select {
+	appearance: none;
+	background-color: var(--cc-surface-raised);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right var(--cc-space-3) center;
+	background-size: 12px;
+	padding-right: var(--cc-space-10);
+	cursor: pointer;
+	font-weight: var(--cc-font-medium);
+}
+
+.chatcommerce-ai-wrap table.form-table select:hover {
+	border-color: var(--cc-color-neutral-400);
+}
+
+.chatcommerce-ai-wrap table.form-table select option {
+	padding: var(--cc-space-2);
+	font-size: var(--cc-text-base);
+}
+
+/* Color Picker Group */
+.cc-color-picker-group {
+	display: flex;
+	align-items: center;
+	gap: var(--cc-space-3);
+}
+
+.cc-color-input {
+	width: 60px;
+	height: 40px;
+	border: 1px solid var(--cc-border-default);
+	border-radius: var(--cc-radius-md);
+	cursor: pointer;
+	transition: all var(--cc-duration-fast) var(--cc-ease-out);
+}
+
+.cc-color-input:hover {
+	border-color: var(--cc-border-focus);
+	box-shadow: var(--cc-shadow-sm);
+}
+
+.cc-color-display {
+	padding: var(--cc-space-2) var(--cc-space-3);
+	border: 1px solid var(--cc-border-default);
+	border-radius: var(--cc-radius-md);
+	background: var(--cc-surface-raised);
+	font-family: monospace;
+	font-size: var(--cc-text-sm);
+	color: var(--cc-text-secondary);
+	text-align: center;
+}
+
+/* API Key Input with Toggle */
+.cc-api-key-wrapper {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	max-width: 500px;
+	width: 100%;
+}
+
+.cc-api-key-input {
+	width: 100%;
+	padding: var(--cc-space-3) var(--cc-space-12) var(--cc-space-3) var(--cc-space-4);
+	border: 1px solid var(--cc-border-default);
+	border-radius: var(--cc-radius-md);
+	font-size: var(--cc-text-base);
+	font-family: monospace;
+	background: var(--cc-surface-raised);
+	transition: all var(--cc-duration-fast) var(--cc-ease-out);
+}
+
+.cc-api-key-input:focus {
+	border-color: var(--cc-border-focus);
+	box-shadow: var(--cc-shadow-focus);
+	outline: none;
+}
+
+.cc-toggle-api-key {
+	position: absolute;
+	right: var(--cc-space-2);
+	top: 50%;
+	transform: translateY(-50%);
+	background: transparent;
+	border: none;
+	padding: var(--cc-space-2);
+	cursor: pointer;
+	color: var(--cc-text-secondary);
+	border-radius: var(--cc-radius-sm);
+	transition: all var(--cc-duration-fast) var(--cc-ease-out);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.cc-toggle-api-key:hover {
+	background: var(--cc-color-neutral-100);
+	color: var(--cc-text-primary);
+}
+
+.cc-toggle-api-key:focus {
+	outline: 2px solid var(--cc-color-primary-500);
+	outline-offset: 2px;
+}
+
+.cc-toggle-api-key .dashicons {
+	width: 20px;
+	height: 20px;
+	font-size: 20px;
+}
+
+.chatcommerce-ai-wrap .description {
+	color: var(--cc-text-secondary);
+	font-size: var(--cc-text-sm);
+	line-height: var(--cc-leading-relaxed);
+	margin-top: var(--cc-space-2);
+}
+
+/* ============================================
+   SUBMIT BUTTON STYLING
+   ============================================ */
+.chatcommerce-ai-wrap .button-primary {
+	background: var(--cc-color-primary-600) !important;
+	border-color: var(--cc-color-primary-600) !important;
+	color: var(--cc-text-on-primary) !important;
+	border-radius: var(--cc-radius-md) !important;
+	padding: var(--cc-space-3) var(--cc-space-6) !important;
+	font-weight: var(--cc-font-medium) !important;
+	box-shadow: none !important;
+	text-shadow: none !important;
+	transition: all var(--cc-duration-fast) var(--cc-ease-out) !important;
+}
+
+.chatcommerce-ai-wrap .button-primary:hover {
+	background: var(--cc-color-primary-700) !important;
+	border-color: var(--cc-color-primary-700) !important;
+	transform: translateY(-1px);
+}
+
+.chatcommerce-ai-wrap .button-primary:focus {
+	box-shadow: var(--cc-shadow-focus) !important;
+}
+
+.chatcommerce-ai-wrap .button-secondary {
+	border-radius: var(--cc-radius-md) !important;
+	padding: var(--cc-space-3) var(--cc-space-6) !important;
+}
+
+/* ============================================
+   WORDPRESS NOTICE ENHANCEMENTS
+   ============================================ */
+.chatcommerce-ai-wrap .notice {
+	border-radius: var(--cc-radius-lg);
+	border-left-width: 4px;
+	padding: var(--cc-space-4) var(--cc-space-6);
+	box-shadow: var(--cc-shadow-xs);
+}
+
+/* Dismissible Notice Styling */
+.chatcommerce-ai-notice.is-dismissible {
+	position: relative;
+	padding-right: 3.5rem;
+}
+
+.chatcommerce-ai-notice .notice-dismiss {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 2.5rem;
+	height: 100%;
+	border: none;
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+	transition: all var(--cc-duration-fast) var(--cc-ease-out);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-decoration: none;
+}
+
+.chatcommerce-ai-notice .notice-dismiss:before {
+	content: "\f335";
+	font-family: dashicons;
+	font-size: 16px;
+	width: 20px;
+	height: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: all var(--cc-duration-fast) var(--cc-ease-out);
+	color: currentColor;
+	opacity: 0.6;
+}
+
+.chatcommerce-ai-notice .notice-dismiss:hover:before {
+	opacity: 1;
+	background: rgba(0, 0, 0, 0.05);
+}
+
+.chatcommerce-ai-notice .notice-dismiss:focus {
+	outline: 2px solid var(--cc-color-primary-500);
+	outline-offset: -2px;
+	box-shadow: none;
+}
+
+.chatcommerce-ai-notice .notice-dismiss:focus:before {
+	opacity: 1;
+}
+
+/* Success Notice (Green/Onboarding) */
+.chatcommerce-ai-notice.notice-success .notice-dismiss:hover:before {
+	background: rgba(0, 163, 42, 0.1);
+	color: var(--cc-color-success-700);
+}
+
+/* Warning Notice (Amber/API Key) */
+.chatcommerce-ai-notice.notice-warning .notice-dismiss:hover:before {
+	background: rgba(245, 158, 11, 0.1);
+	color: var(--cc-color-warning-700);
+}
+
+/* Error Notice (Red) */
+.chatcommerce-ai-notice.notice-error .notice-dismiss:hover:before {
+	background: rgba(239, 68, 68, 0.1);
+	color: var(--cc-color-error-700);
+}
+
+/* Info Notice (Blue) */
+.chatcommerce-ai-notice.notice-info .notice-dismiss:hover:before {
+	background: rgba(59, 130, 246, 0.1);
+	color: var(--cc-color-info-700);
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+.chatcommerce-ai-wrap .is-loading {
+	position: relative;
+	pointer-events: none;
+	opacity: 0.6;
+}
+
+.chatcommerce-ai-wrap .is-loading::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 20px;
+	height: 20px;
+	margin: -10px 0 0 -10px;
+	border: 2px solid var(--cc-color-primary-600);
+	border-top-color: transparent;
+	border-radius: 50%;
+	animation: cc-spin 0.6s linear infinite;
+}
+
+@keyframes cc-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+@media (max-width: 782px) {
+	.chatcommerce-ai-wrap {
+		margin-left: -10px;
+		margin-right: -10px;
+		padding: var(--cc-space-4);
+	}
+
+	.cc-page-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--cc-space-4);
+	}
+
+	.cc-page-actions {
+		width: 100%;
+	}
+
+	.cc-page-actions .cc-button {
+		width: 100%;
+	}
+}
+
+@media (max-width: 600px) {
+	.chatcommerce-ai-settings .nav-tab {
+		display: block;
+		margin-right: 0;
+		margin-bottom: -2px;
+		border-bottom: none;
+		border-left: 2px solid transparent;
+		margin-left: 0;
+		padding-left: var(--cc-space-4);
+	}
+
+	.chatcommerce-ai-settings .nav-tab-active {
+		border-bottom: none;
+		border-left-color: var(--cc-color-primary-600);
+	}
 }

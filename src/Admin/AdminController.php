@@ -18,6 +18,8 @@ class AdminController {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_notices', array( $this, 'show_admin_notices' ) );
+		add_action( 'admin_head', array( $this, 'hide_woocommerce_notices' ) );
+		add_action( 'wp_ajax_chatcommerce_ai_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
 	}
 
 	/**
@@ -209,16 +211,16 @@ class AdminController {
 	 * Show admin notices.
 	 */
 	public function show_admin_notices() {
-		// Show onboarding notice.
-		if ( get_option( 'chatcommerce_ai_show_onboarding' ) ) {
+		// Show onboarding notice if not dismissed.
+		if ( get_option( 'chatcommerce_ai_show_onboarding' ) && ! get_user_meta( get_current_user_id(), 'chatcommerce_ai_dismissed_onboarding', true ) ) {
 			$this->render_onboarding_notice();
 		}
 
 		// Check if OpenAI API key is set.
 		$settings = get_option( 'chatcommerce_ai_settings', array() );
-		if ( empty( $settings['openai_api_key'] ) && $this->is_plugin_page() ) {
+		if ( empty( $settings['openai_api_key'] ) && $this->is_plugin_page() && ! get_user_meta( get_current_user_id(), 'chatcommerce_ai_dismissed_api_key_notice', true ) ) {
 			?>
-			<div class="notice notice-warning is-dismissible">
+			<div class="notice notice-warning is-dismissible chatcommerce-ai-notice" data-notice-id="api_key_notice">
 				<p>
 					<?php
 					printf(
@@ -238,7 +240,7 @@ class AdminController {
 	 */
 	private function render_onboarding_notice() {
 		?>
-		<div class="notice notice-success is-dismissible">
+		<div class="notice notice-success is-dismissible chatcommerce-ai-notice" data-notice-id="onboarding">
 			<p>
 				<?php
 				printf(
@@ -260,6 +262,57 @@ class AdminController {
 	private function is_plugin_page() {
 		$screen = get_current_screen();
 		return $screen && strpos( $screen->id, 'chatcommerce-ai' ) !== false;
+	}
+
+	/**
+	 * Hide WooCommerce notices on ChatCommerce AI pages.
+	 */
+	public function hide_woocommerce_notices() {
+		// Only hide on our plugin pages.
+		if ( ! $this->is_plugin_page() ) {
+			return;
+		}
+
+		// Remove WooCommerce admin notices at multiple hook points.
+		remove_action( 'admin_notices', array( 'WC_Admin_Notices', 'output_notices' ), 99 );
+		remove_action( 'admin_notices', 'woocommerce_output_all_notices', 99 );
+
+		// Remove specific WooCommerce notice types.
+		global $wp_filter;
+		if ( isset( $wp_filter['admin_notices'] ) ) {
+			foreach ( $wp_filter['admin_notices']->callbacks as $priority => $callbacks ) {
+				foreach ( $callbacks as $callback_id => $callback ) {
+					if ( is_array( $callback['function'] ) && isset( $callback['function'][0] ) ) {
+						$class_name = is_object( $callback['function'][0] ) ? get_class( $callback['function'][0] ) : '';
+						if ( strpos( $class_name, 'WooCommerce' ) !== false || strpos( $class_name, 'WC_' ) !== false ) {
+							remove_action( 'admin_notices', $callback['function'], $priority );
+						}
+					}
+				}
+			}
+		}
+
+		// Hide WooCommerce notices with CSS as a comprehensive fallback.
+		?>
+		<style>
+			/* Hide all WooCommerce-related notices */
+			.woocommerce-message,
+			.woocommerce-error,
+			.woocommerce-info,
+			div.notice.wc-admin-notice,
+			div.notice[class*="woocommerce"],
+			div.notice[class*="wc-"],
+			.notice:has(a[href*="woocommerce"]),
+			#wpbody-content > .notice:not(.chatcommerce-ai-notice) {
+				display: none !important;
+			}
+
+			/* Only show ChatCommerce AI notices */
+			.chatcommerce-ai-notice {
+				display: flex !important;
+			}
+		</style>
+		<?php
 	}
 
 	/**
@@ -295,5 +348,36 @@ class AdminController {
 	 */
 	public function render_sync_page() {
 		require_once CHATCOMMERCE_AI_PLUGIN_DIR . 'templates/admin/sync.php';
+	}
+
+	/**
+	 * AJAX handler to dismiss admin notices.
+	 */
+	public function ajax_dismiss_notice() {
+		// Verify nonce.
+		check_ajax_referer( 'chatcommerce_ai_dismiss_notice', 'nonce' );
+
+		// Check user capability.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'chatcommerce-ai' ) ) );
+		}
+
+		// Get notice ID.
+		$notice_id = isset( $_POST['notice_id'] ) ? sanitize_text_field( $_POST['notice_id'] ) : '';
+
+		if ( empty( $notice_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid notice ID.', 'chatcommerce-ai' ) ) );
+		}
+
+		// Save dismissed state.
+		$user_id = get_current_user_id();
+		update_user_meta( $user_id, 'chatcommerce_ai_dismissed_' . $notice_id, true );
+
+		// If dismissing onboarding, also remove the global flag.
+		if ( $notice_id === 'onboarding' ) {
+			delete_option( 'chatcommerce_ai_show_onboarding' );
+		}
+
+		wp_send_json_success( array( 'message' => __( 'Notice dismissed.', 'chatcommerce-ai' ) ) );
 	}
 }

@@ -201,6 +201,26 @@ function init() {
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\init' );
 
 /**
+ * Add plugin action links (Settings, etc).
+ *
+ * @param array $links Existing plugin action links.
+ * @return array Modified plugin action links.
+ */
+function plugin_action_links( $links ) {
+	$settings_link = sprintf(
+		'<a href="%s">%s</a>',
+		esc_url( admin_url( 'admin.php?page=chatcommerce-ai-settings' ) ),
+		esc_html__( 'Settings', 'chatcommerce-ai' )
+	);
+
+	array_unshift( $links, $settings_link );
+
+	return $links;
+}
+
+add_filter( 'plugin_action_links_' . CHATCOMMERCE_AI_PLUGIN_BASENAME, __NAMESPACE__ . '\\plugin_action_links' );
+
+/**
  * Activation hook.
  */
 function activate() {
