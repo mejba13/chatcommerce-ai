@@ -54,72 +54,128 @@ class StatusEndpoint {
 	public function get_status( $request ) {
 		global $wpdb;
 
-		$settings = get_option( 'chatcommerce_ai_settings', array() );
-		$request_id = $this->generate_request_id();
+		try {
+			$settings = get_option( 'chatcommerce_ai_settings', array() );
+			$request_id = $this->generate_request_id();
 
-		// Check plugin version.
-		$plugin_version = defined( 'CHATCOMMERCE_AI_VERSION' ) ? CHATCOMMERCE_AI_VERSION : 'unknown';
+			// Check plugin version.
+			$plugin_version = defined( 'CHATCOMMERCE_AI_VERSION' ) ? CHATCOMMERCE_AI_VERSION : 'unknown';
 
-		// Check REST API availability.
-		$rest_available = rest_url() ? true : false;
+			// Check REST API availability.
+			$rest_available = rest_url() ? true : false;
 
-		// Check OpenAI configuration.
-		$api_key_set = ! empty( $settings['openai_api_key'] );
-		$model = $settings['openai_model'] ?? 'gpt-4o-mini';
+			// Check OpenAI configuration.
+			$api_key_set = ! empty( $settings['openai_api_key'] );
+			$model = $settings['openai_model'] ?? 'gpt-4o-mini';
 
-		// Get last error from transient.
-		$last_error = get_transient( 'chatcommerce_ai_last_error' );
+			// Get last error from transient.
+			$last_error = get_transient( 'chatcommerce_ai_last_error' );
 
-		// Perform OpenAI connectivity probe.
-		$openai_connectivity = $this->probe_openai_connectivity();
+			// Get cached connectivity status (don't make live request to avoid 520 errors).
+			$openai_connectivity = get_transient( 'chatcommerce_ai_connectivity_probe' );
+			if ( false === $openai_connectivity ) {
+				// If no cached status, show basic info without making external request.
+				if ( $api_key_set ) {
+					$openai_connectivity = array(
+						'status'  => 'unknown',
+						'message' => __( 'Click "Test Connection" to check', 'chatcommerce-ai' ),
+					);
+				} else {
+					$openai_connectivity = array(
+						'status'  => 'not_configured',
+						'message' => __( 'API key not configured', 'chatcommerce-ai' ),
+					);
+				}
+			}
 
-		$status = array(
-			'request_id'   => $request_id,
-			'timestamp'    => current_time( 'c' ),
-			'plugin'       => array(
-				'version'    => $plugin_version,
-				'enabled'    => ! empty( $settings['enabled'] ),
-				'db_version' => get_option( 'chatcommerce_ai_db_version' ),
-			),
-			'system'       => array(
-				'php_version' => PHP_VERSION,
-				'wp_version'  => get_bloginfo( 'version' ),
-				'wc_version'  => defined( 'WC_VERSION' ) ? WC_VERSION : null,
-				'rest_api'    => $rest_available,
-			),
-			'openai'       => array(
-				'api_key_set'  => $api_key_set,
-				'model'        => $model,
-				'connectivity' => $openai_connectivity,
-			),
-			'stats'        => array(
-				'total_sessions' => $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}chatcommerce_sessions" ),
-				'total_messages' => $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}chatcommerce_messages" ),
-				'total_leads'    => $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}chatcommerce_leads" ),
-				'indexed_docs'   => $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}chatcommerce_sync_index" ),
-			),
-			'last_error'   => $last_error ? array(
-				'code'      => $last_error['code'] ?? 'unknown',
-				'message'   => $last_error['message'] ?? 'Unknown error',
-				'timestamp' => $last_error['timestamp'] ?? null,
-			) : null,
-		);
+			// Get database stats with error handling.
+			$stats = array(
+				'total_sessions' => 0,
+				'total_messages' => 0,
+				'total_leads'    => 0,
+				'indexed_docs'   => 0,
+			);
 
-		// Log status check.
-		$this->log_diagnostic(
-			'status_check',
-			$request_id,
-			'Status endpoint called',
-			array( 'user_id' => get_current_user_id() )
-		);
+			try {
+				// Check if tables exist before querying.
+				$sessions_table = $wpdb->prefix . 'chatcommerce_sessions';
+				$messages_table = $wpdb->prefix . 'chatcommerce_messages';
+				$leads_table = $wpdb->prefix . 'chatcommerce_leads';
+				$sync_table = $wpdb->prefix . 'chatcommerce_sync_index';
 
-		return new WP_REST_Response(
-			array(
-				'success' => true,
-				'status'  => $status,
-			),
-			200
-		);
+				if ( $wpdb->get_var( "SHOW TABLES LIKE '{$sessions_table}'" ) === $sessions_table ) {
+					$stats['total_sessions'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$sessions_table}" );
+				}
+				if ( $wpdb->get_var( "SHOW TABLES LIKE '{$messages_table}'" ) === $messages_table ) {
+					$stats['total_messages'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$messages_table}" );
+				}
+				if ( $wpdb->get_var( "SHOW TABLES LIKE '{$leads_table}'" ) === $leads_table ) {
+					$stats['total_leads'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$leads_table}" );
+				}
+				if ( $wpdb->get_var( "SHOW TABLES LIKE '{$sync_table}'" ) === $sync_table ) {
+					$stats['indexed_docs'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$sync_table}" );
+				}
+			} catch ( \Exception $e ) {
+				// Silently handle database errors.
+				error_log( 'ChatCommerce AI: Database stat query failed - ' . $e->getMessage() );
+			}
+
+			$status = array(
+				'request_id'   => $request_id,
+				'timestamp'    => current_time( 'c' ),
+				'plugin'       => array(
+					'version'    => $plugin_version,
+					'enabled'    => ! empty( $settings['enabled'] ),
+					'db_version' => get_option( 'chatcommerce_ai_db_version' ),
+				),
+				'system'       => array(
+					'php_version' => PHP_VERSION,
+					'wp_version'  => get_bloginfo( 'version' ),
+					'wc_version'  => defined( 'WC_VERSION' ) ? WC_VERSION : null,
+					'rest_api'    => $rest_available,
+				),
+				'openai'       => array(
+					'api_key_set'  => $api_key_set,
+					'model'        => $model,
+					'connectivity' => $openai_connectivity,
+				),
+				'stats'        => $stats,
+				'last_error'   => $last_error ? array(
+					'code'      => $last_error['code'] ?? 'unknown',
+					'message'   => $last_error['message'] ?? 'Unknown error',
+					'timestamp' => $last_error['timestamp'] ?? null,
+				) : null,
+			);
+
+			// Log status check.
+			$this->log_diagnostic(
+				'status_check',
+				$request_id,
+				'Status endpoint called',
+				array( 'user_id' => get_current_user_id() )
+			);
+
+			return new WP_REST_Response(
+				array(
+					'success' => true,
+					'status'  => $status,
+				),
+				200
+			);
+
+		} catch ( \Exception $e ) {
+			// Catch any unexpected errors and return a safe response.
+			error_log( 'ChatCommerce AI: Status endpoint error - ' . $e->getMessage() );
+
+			return new WP_REST_Response(
+				array(
+					'success' => false,
+					'error'   => 'Unable to fetch status',
+					'message' => $e->getMessage(),
+				),
+				500
+			);
+		}
 	}
 
 	/**
