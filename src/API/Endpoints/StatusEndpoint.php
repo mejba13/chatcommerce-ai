@@ -43,6 +43,25 @@ class StatusEndpoint {
 				},
 			)
 		);
+
+		register_rest_route(
+			'chatcommerce/v1',
+			'/test-provider',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'test_provider' ),
+				'permission_callback' => function () {
+					return current_user_can( 'manage_options' );
+				},
+				'args'                => array(
+					'provider' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -380,6 +399,114 @@ class StatusEndpoint {
 			),
 			200
 		);
+	}
+
+	/**
+	 * Test AI provider connection.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function test_provider( $request ) {
+		$request_id = $this->generate_request_id();
+
+		try {
+			// Get settings and determine which provider to test.
+			$settings = get_option( 'chatcommerce_ai_settings', array() );
+			$provider_param = $request->get_param( 'provider' );
+			$provider_key = $provider_param ?? ( $settings['ai_provider'] ?? 'openai' );
+
+			$this->log_diagnostic(
+				'provider_test',
+				$request_id,
+				'Testing provider: ' . $provider_key,
+				array( 'user_id' => get_current_user_id() )
+			);
+
+			// Create provider instance.
+			$provider = \ChatCommerceAI\AI\Providers\ProviderFactory::create( $settings );
+
+			// Run test connection.
+			$result = $provider->test_connection();
+
+			if ( ! $result['success'] ) {
+				$this->log_diagnostic(
+					'provider_test',
+					$request_id,
+					'Provider test failed: ' . $result['message'],
+					array(
+						'provider'   => $provider_key,
+						'latency_ms' => $result['latency_ms'] ?? 0,
+						'user_id'    => get_current_user_id(),
+					)
+				);
+
+				return new WP_Error(
+					'provider_test_failed',
+					$result['message'],
+					array(
+						'status'     => 500,
+						'provider'   => $provider_key,
+						'latency_ms' => $result['latency_ms'] ?? 0,
+						'request_id' => $request_id,
+						'error'      => $result['error'] ?? null,
+					)
+				);
+			}
+
+			// Success.
+			$this->log_diagnostic(
+				'provider_test',
+				$request_id,
+				'Provider test successful',
+				array(
+					'provider'   => $provider_key,
+					'latency_ms' => $result['latency_ms'],
+					'model'      => $result['model'] ?? 'N/A',
+					'user_id'    => get_current_user_id(),
+				)
+			);
+
+			// Cache the result.
+			set_transient( 'chatcommerce_ai_connectivity_probe', array(
+				'status'     => 'connected',
+				'message'    => $result['message'],
+				'latency_ms' => $result['latency_ms'],
+			), 5 * MINUTE_IN_SECONDS );
+
+			return new WP_REST_Response(
+				array(
+					'success'    => true,
+					'message'    => $result['message'],
+					'provider'   => $provider_key,
+					'model'      => $result['model'] ?? 'N/A',
+					'latency_ms' => $result['latency_ms'],
+					'request_id' => $request_id,
+					'tokens'     => $result['tokens'] ?? null,
+				),
+				200
+			);
+
+		} catch ( \Exception $e ) {
+			$this->log_diagnostic(
+				'provider_test',
+				$request_id,
+				'Provider test exception: ' . $e->getMessage(),
+				array(
+					'error_type' => get_class( $e ),
+					'user_id'    => get_current_user_id(),
+				)
+			);
+
+			return new WP_Error(
+				'provider_test_exception',
+				$e->getMessage(),
+				array(
+					'status'     => 500,
+					'request_id' => $request_id,
+				)
+			);
+		}
 	}
 
 	/**

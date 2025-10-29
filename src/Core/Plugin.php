@@ -68,8 +68,55 @@ class Plugin {
 	 * Constructor.
 	 */
 	private function __construct() {
+		$this->run_migrations();
 		$this->init_hooks();
 		$this->init_components();
+	}
+
+	/**
+	 * Run database migrations.
+	 */
+	private function run_migrations() {
+		$installed_version = get_option( 'chatcommerce_ai_version', '0.0.0' );
+		$current_version   = CHATCOMMERCE_AI_VERSION;
+
+		// Skip if already at current version.
+		if ( version_compare( $installed_version, $current_version, '>=' ) ) {
+			return;
+		}
+
+		// Migration to v1.1.0: Add ai_provider for existing OpenAI users.
+		if ( version_compare( $installed_version, '1.1.0', '<' ) ) {
+			$this->migrate_to_1_1_0();
+		}
+
+		// Update version.
+		update_option( 'chatcommerce_ai_version', $current_version );
+	}
+
+	/**
+	 * Migrate to version 1.1.0.
+	 * Add ai_provider field for existing OpenAI users.
+	 */
+	private function migrate_to_1_1_0() {
+		$settings = get_option( 'chatcommerce_ai_settings', array() );
+
+		// If settings exist and ai_provider is not set, but openai_api_key exists.
+		if ( ! empty( $settings ) && ! isset( $settings['ai_provider'] ) ) {
+			// Set ai_provider to 'openai' for existing installations.
+			$settings['ai_provider'] = 'openai';
+
+			// Also set default Hugging Face model for future use.
+			if ( ! isset( $settings['hf_model'] ) ) {
+				$settings['hf_model'] = 'mistralai/Mistral-7B-Instruct-v0.2';
+			}
+
+			// Update settings.
+			update_option( 'chatcommerce_ai_settings', $settings );
+
+			// Log migration.
+			error_log( '[ChatCommerce AI] Migration to v1.1.0: Set ai_provider=openai for existing installation' );
+		}
 	}
 
 	/**

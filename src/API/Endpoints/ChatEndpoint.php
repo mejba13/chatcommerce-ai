@@ -10,7 +10,7 @@ namespace ChatCommerceAI\API\Endpoints;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
-use ChatCommerceAI\AI\OpenAIClient;
+use ChatCommerceAI\AI\Providers\ProviderFactory;
 use ChatCommerceAI\Security\RateLimiter;
 
 /**
@@ -82,31 +82,63 @@ class ChatEndpoint {
 		// Get chat history.
 		$history = $this->get_chat_history( $session_id, 6 );
 
-		// Initialize OpenAI client.
-		$openai = new OpenAIClient();
+		// Initialize AI provider.
+		try {
+			$provider = ProviderFactory::create();
+		} catch ( \Exception $e ) {
+			// Generate request ID for correlation.
+			$request_id = 'req_' . wp_generate_password( 16, false );
+
+			// Map error to user-friendly message.
+			$error_message = $this->map_error_message( $e->getMessage() );
+
+			// Log error.
+			$this->log_error(
+				'provider_init_error',
+				$request_id,
+				$session_id,
+				$e->getMessage(),
+				array(
+					'error_type'   => get_class( $e ),
+					'user_message' => $error_message,
+				)
+			);
+
+			// Store error for diagnostics.
+			$this->store_error( 'provider_init_error', $error_message, $request_id );
+
+			return new WP_Error(
+				'provider_error',
+				$error_message,
+				array(
+					'status'     => 500,
+					'request_id' => $request_id,
+				)
+			);
+		}
 
 		// Check if streaming is supported.
 		$accept_header = $request->get_header( 'Accept' );
 		$supports_sse  = strpos( $accept_header, 'text/event-stream' ) !== false;
 
-		if ( $supports_sse ) {
+		if ( $supports_sse && $provider->supports_streaming() ) {
 			// SSE streaming.
-			$this->stream_response( $openai, $session_id, $history, $message );
+			$this->stream_response( $provider, $session_id, $history, $message );
 		} else {
 			// Fallback to regular response.
-			return $this->regular_response( $openai, $session_id, $history, $message );
+			return $this->regular_response( $provider, $session_id, $history, $message );
 		}
 	}
 
 	/**
 	 * Stream response using SSE.
 	 *
-	 * @param OpenAIClient $openai OpenAI client.
-	 * @param string       $session_id Session ID.
-	 * @param array        $history Chat history.
-	 * @param string       $message User message.
+	 * @param mixed  $provider AI provider instance.
+	 * @param string $session_id Session ID.
+	 * @param array  $history Chat history.
+	 * @param string $message User message.
 	 */
-	private function stream_response( $openai, $session_id, $history, $message ) {
+	private function stream_response( $provider, $session_id, $history, $message ) {
 		// Set SSE headers.
 		header( 'Content-Type: text/event-stream' );
 		header( 'Cache-Control: no-cache' );
@@ -127,8 +159,8 @@ class ChatEndpoint {
 		$tokens_used   = 0;
 
 		try {
-			// Stream from OpenAI.
-			$openai->stream_chat(
+			// Stream from AI provider.
+			$provider->stream(
 				$history,
 				$message,
 				function ( $chunk ) use ( &$full_response ) {
@@ -191,15 +223,15 @@ class ChatEndpoint {
 	/**
 	 * Regular response (non-streaming fallback).
 	 *
-	 * @param OpenAIClient $openai OpenAI client.
-	 * @param string       $session_id Session ID.
-	 * @param array        $history Chat history.
-	 * @param string       $message User message.
+	 * @param mixed  $provider AI provider instance.
+	 * @param string $session_id Session ID.
+	 * @param array  $history Chat history.
+	 * @param string $message User message.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	private function regular_response( $openai, $session_id, $history, $message ) {
+	private function regular_response( $provider, $session_id, $history, $message ) {
 		try {
-			$response = $openai->chat( $history, $message );
+			$response = $provider->generate( $history, $message );
 
 			// Store assistant message.
 			$this->store_message( $session_id, 'assistant', $response['content'], $response['tokens'] );
@@ -391,8 +423,9 @@ class ChatEndpoint {
 	 * @param array  $context Additional context.
 	 */
 	private function log_error( $event_type, $request_id, $session_id, $error_message, $context = array() ) {
-		// Redact API key from error message.
+		// Redact API keys from error message (OpenAI and Hugging Face).
 		$redacted_message = preg_replace( '/sk-[a-zA-Z0-9]{20,}/', 'sk-***REDACTED***', $error_message );
+		$redacted_message = preg_replace( '/hf_[a-zA-Z0-9]{20,}/', 'hf_***REDACTED***', $redacted_message );
 
 		// Add base context.
 		$context = array_merge(
