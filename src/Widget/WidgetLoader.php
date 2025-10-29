@@ -49,6 +49,16 @@ class WidgetLoader {
 	 */
 	private function get_widget_html() {
 		$settings = get_option( 'chatcommerce_ai_settings', array() );
+
+		// Use new modern template
+		$template_file = CHATCOMMERCE_AI_PLUGIN_DIR . 'templates/widget-modern.php';
+		if ( file_exists( $template_file ) ) {
+			ob_start();
+			include $template_file;
+			return ob_get_clean();
+		}
+
+		// Fallback to inline HTML
 		// Force bottom-right position for modern UX
 		$position = 'bottom-right';
 
@@ -97,7 +107,7 @@ class WidgetLoader {
 				</span>
 			</button>
 
-			<!-- Chat Window - Enhanced Modern Design with Accessibility -->
+			<!-- Chat Window - Professional Modern Design -->
 			<div
 				id="chatcommerce-panel"
 				x-show="isOpen"
@@ -110,8 +120,8 @@ class WidgetLoader {
 				x-transition:leave="transition ease-in duration-180"
 				x-transition:leave-start="opacity-100 translate-y-0 scale-100"
 				x-transition:leave-end="opacity-0 translate-y-4 scale-96"
-				class="absolute right-0 bottom-24 w-[400px] max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border-2 border-gray-200 md:bottom-24 md:h-[600px] sm:fixed sm:inset-0 sm:bottom-0 sm:right-0 sm:h-screen sm:w-screen sm:max-w-full sm:rounded-none"
-				style="box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);"
+				class="absolute right-0 bottom-24 w-[380px] max-w-[calc(100vw-2rem)] h-[580px] max-h-[calc(100vh-8rem)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200/60 md:bottom-24 md:h-[580px] sm:fixed sm:inset-0 sm:bottom-0 sm:right-0 sm:h-screen sm:w-screen sm:max-w-full sm:rounded-none"
+				style="box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.08);"
 				role="dialog"
 				aria-modal="true"
 				aria-labelledby="chat-header-title"
