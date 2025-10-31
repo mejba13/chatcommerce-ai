@@ -144,18 +144,30 @@ class AdminController {
 		}
 
 		// OpenAI settings.
-		if ( ! empty( $input['openai_api_key'] ) ) {
-			$output['openai_api_key'] = $this->encrypt_api_key( sanitize_text_field( $input['openai_api_key'] ) );
+		// Check if the key field contains placeholder dots (meaning user didn't change it).
+		$openai_key_changed = ! empty( $input['openai_api_key'] )
+			&& strpos( $input['openai_api_key'], '•' ) === false
+			&& $input['openai_api_key'] !== '••••••••••••••••••••••••••••••••';
+
+		if ( $openai_key_changed ) {
+			$output['openai_api_key'] = self::encrypt_api_key( sanitize_text_field( $input['openai_api_key'] ) );
 		} else {
+			// Preserve existing encrypted key.
 			$output['openai_api_key'] = $input['openai_api_key_encrypted'] ?? '';
 		}
 
 		$output['openai_model'] = sanitize_text_field( $input['openai_model'] ?? 'gpt-4o-mini' );
 
 		// Hugging Face settings.
-		if ( ! empty( $input['hf_access_token'] ) ) {
-			$output['hf_access_token'] = $this->encrypt_api_key( sanitize_text_field( $input['hf_access_token'] ) );
+		// Check if the token field contains placeholder dots (meaning user didn't change it).
+		$hf_token_changed = ! empty( $input['hf_access_token'] )
+			&& strpos( $input['hf_access_token'], '•' ) === false
+			&& $input['hf_access_token'] !== '••••••••••••••••••••••••••••••••';
+
+		if ( $hf_token_changed ) {
+			$output['hf_access_token'] = self::encrypt_api_key( sanitize_text_field( $input['hf_access_token'] ) );
 		} else {
+			// Preserve existing encrypted token.
 			$output['hf_access_token'] = $input['hf_access_token_encrypted'] ?? '';
 		}
 
@@ -194,7 +206,7 @@ class AdminController {
 	 * @param string $key API key.
 	 * @return string
 	 */
-	private function encrypt_api_key( $key ) {
+	public static function encrypt_api_key( $key ) {
 		if ( function_exists( 'openssl_encrypt' ) ) {
 			$encryption_key = wp_salt( 'auth' );
 			$iv_length      = openssl_cipher_iv_length( 'AES-256-CBC' );
